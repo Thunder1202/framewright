@@ -1,0 +1,5 @@
+# OPTIONAL - only for computers with an NVIDIA graphics card.
+# Makes transcription several times faster. About 1.2 GB download.
+#   pip install -r requirements-gpu.txt
+nvidia-cublas-cu12
+nvidia-cudnn-cu12>=9,<10

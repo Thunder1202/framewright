@@ -1,0 +1,15 @@
+# Kadr dictionary - fixes words the speech model keeps getting wrong.
+# It is applied automatically after every transcription.
+#
+# Two kinds of lines:
+#
+#   wrong => right        replace what the model wrote with what you want
+#   Exact Name            always write this name with exactly this spelling
+#
+# Upper/lower case and the kind of apostrophe do not matter when matching.
+# Lines starting with # are ignored. Examples (remove the # to switch one on):
+#
+# ok tepa => Oqtepa
+# instagramm => Instagram
+# Toshkent
+# O‘zbekiston

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kadr editor</title>
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="top">
+    <a href="/" class="button">← All videos</a>
+    <img src="/static/logo.svg" alt="" class="logo">
+    <h1 id="title">Editor</h1>
+    <span class="spacer"></span>
+    <span class="badge" id="status">…</span>
+  </header>
+
+  <div class="editor">
+    <div class="left">
+      <div id="message" class="message"></div>
+      <div class="stage" id="stage">
+        <video id="video" controls playsinline preload="metadata"></video>
+        <div class="overlay" id="overlay"><div class="cap" id="cap"><span class="txt" id="capText"></span></div></div>
+      </div>
+      <p class="note">The preview on the video is approximate. Use “Exact preview” to see one real frame.</p>
+
+      <div class="panel" style="margin-top:14px">
+        <h2>Style</h2>
+        <div class="styles" id="styles"></div>
+        <div class="row">
+          <label><input type="checkbox" id="vertical"> Export as 9:16 vertical (1080×1920)</label>
+        </div>
+        <div class="row">
+          <button id="exact">Exact preview</button>
+          <button id="export" class="primary">Export video</button>
+        </div>
+        <div class="bar" id="exportBar" style="margin-top:12px; display:none"><i></i></div>
+        <p class="note" id="exportNote"></p>
+        <div class="row" id="downloads" style="display:none">
+          <a class="button primary" id="dlVideo">Download video (.mp4)</a>
+          <a class="button" id="dlSrt">Subtitles (.srt)</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="toolbar">
+        <button id="toCyr" title="Convert all Uzbek text from Latin to Cyrillic">Lotin → Кирилл</button>
+        <button id="toLat" title="Convert all Uzbek text from Cyrillic to Latin">Кирилл → Lotin</button>
+        <span class="spacer"></span>
+        <button id="undo" title="Undo the last change (press again to redo)">Undo</button>
+        <button id="reset" title="Throw away all edits and go back to the automatic transcript">Reset</button>
+        <a class="button" id="dlSrtTop">.srt</a>
+      </div>
+      <div class="lines" id="lines"></div>
+      <p class="help">Click a word to jump the video there. Type to fix the text (Enter saves).
+        <b>Split</b> starts a new line at the word you clicked. <b>Merge</b> joins a line with the next one.
+        The − / + buttons move a line's start or end by 0.1 s.</p>
+    </div>
+  </div>
+
+  <div class="modal" id="modal"><img id="modalImg" alt="Exact preview frame"></div>
+
+  <script src="/static/common.js"></script>
+  <script src="/static/editor.js"></script>
+</body>
+</html>

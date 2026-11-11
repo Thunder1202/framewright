@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kadr</title>
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="top">
+    <img src="/static/logo.svg" alt="" class="logo">
+    <h1>Kadr</h1>
+    <span class="sub">Auto-subtitles for Uzbek and Russian videos, on your own computer</span>
+    <span class="spacer"></span>
+    <span class="badge" id="device">…</span>
+  </header>
+
+  <main class="page">
+    <div id="message" class="message"></div>
+
+    <section class="panel">
+      <div id="drop" class="drop">
+        <strong>Drop videos here, or click to choose</strong>
+        <span id="limits">Several files at once are fine. They are processed one after another.</span>
+        <input id="file" type="file" accept="video/*,.mkv,.mov,.avi,.webm" multiple hidden>
+      </div>
+      <div class="options">
+        <label class="field">Language spoken
+          <select id="language">
+            <option value="auto">Auto (Uzbek + Russian)</option>
+            <option value="uz">Uzbek</option>
+            <option value="ru">Russian</option>
+          </select>
+        </label>
+        <label class="field">Speech model
+          <select id="model"></select>
+        </label>
+        <span class="hint">Tip: if the whole video is in one language, choose it. It is more accurate than Auto.
+          “Default” uses the models set in settings.json (a special Uzbek model for Uzbek speech). Picking a model here uses it for every language. The first use of a model downloads it once.</span>
+      </div>
+      <div class="bar" id="uploadBar" style="margin-top:14px; display:none"><i></i></div>
+    </section>
+
+    <section class="panel">
+      <h2>Your videos</h2>
+      <div id="jobs"><div class="empty">Nothing here yet. Upload a video to start.</div></div>
+    </section>
+  </main>
+
+  <script src="/static/common.js"></script>
+  <script src="/static/index.js"></script>
+</body>
+</html>
