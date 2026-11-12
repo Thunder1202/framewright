@@ -58,7 +58,8 @@ Built and tested on: Windows 11, Python 3.9.10, GTX 1650 (4 GB), FFmpeg 7.1.
 - **`ц` is always written `ts` in Latin** (official spelling uses `s` at the start of a word and after consonants), so that converting back can work.
 - **Latin `ts` → `ц` only at the start of a word, before `-iya/-ion/-iy`, and for an exception list;** otherwise `тс`. This is a real ambiguity (litsey/лицей vs aytsa/айтса) that rules cannot fully solve.
 - **A short exception list restores `ь`, `йо` and `ц` in common loan words** (сентябрь, район, концерт…). It lives at the top of `engine/translit.py` and is meant to be extended.
-- **Translation (uz/ru/en) was NOT built.** Checked options: Argos Translate (offline, free) has no Uzbek package in its index; NLLB-200 supports Uzbek but its licence is non-commercial (CC-BY-NC), which rules out paid client work; MADLAD-400 (Apache licence) supports Uzbek but is a 3 GB+ download that was not tested here. With nothing verified as reliable, it was skipped rather than faked.
+- **Translation: English ↔ Russian only, added later on request.** It uses the free Argos Translate models (MIT licence), loaded directly with CTranslate2 + SentencePiece, because the full Argos package pulls in PyTorch (2 GB+). Each model is about 200 MB and is downloaded on first use. **Uzbek translation is not offered:** Argos has no Uzbek model, NLLB-200 does but is non-commercial (CC-BY-NC), and MADLAD-400 (3 GB+) was not tested. Translated lines keep each sentence's start and end time; word timings inside are estimated from word length.
+- **Whisper's own translate mode was not used:** it can only translate *into English*.
 
 ## Model quality — what was and was not measured
 

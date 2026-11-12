@@ -5,3 +5,4 @@ __pycache__/
 jobs/*
 !jobs/.gitkeep
 .claude/
+models/

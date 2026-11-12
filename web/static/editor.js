@@ -407,6 +407,21 @@ document.getElementById("exact").onclick = exactPreview;
 document.getElementById("modal").onclick = function () { this.classList.remove("show"); };
 document.getElementById("toCyr").onclick = function () { edit({ op: "translit", direction: "to_cyrillic" }); };
 document.getElementById("toLat").onclick = function () { edit({ op: "translit", direction: "to_latin" }); };
+// Translation can take a while (the first time it downloads a ~200 MB model).
+async function translateAll(source, target, button) {
+  const old = button.textContent;
+  button.disabled = true;
+  button.textContent = "Translating…";
+  showMessage("Translating. The first time this downloads a translation model (about 200 MB), please wait.", "ok");
+  await edit({ op: "translate", source: source, target: target });
+  button.disabled = false;
+  button.textContent = old;
+  if (!document.getElementById("message").classList.contains("bad")) {
+    showMessage("Translated. Machine translation is rough: please read every line. Undo brings the original back.", "ok");
+  }
+}
+document.getElementById("toRu").onclick = function () { translateAll("en", "ru", this); };
+document.getElementById("toEn").onclick = function () { translateAll("ru", "en", this); };
 document.getElementById("undo").onclick = function () { edit({ op: "undo" }); };
 document.getElementById("reset").onclick = function () {
   if (confirm("Throw away all your edits and go back to the automatic transcript?")) edit({ op: "reset" });

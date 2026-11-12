@@ -1,6 +1,6 @@
 # Kadr
 
-1. Takes a short video (up to 5 minutes) with Uzbek or Russian speech, or a mix of both.
+1. Takes a short video (up to 5 minutes) with Uzbek, Russian or English speech, or a mix.
 2. Writes down what is said, word by word, using a free speech model that runs on your computer.
 3. Lets you fix the text and the timing in a simple web page.
 4. Exports the video with styled captions burned in (the spoken word lights up), plus an `.srt` file.
@@ -98,6 +98,9 @@ Your browser opens <http://localhost:8000>. Then:
    - **Merge ↓** → joins a line with the next one. **✕** deletes a line.
    - **− / +** next to the times → move a line's start or end by 0.1 s.
    - **Lotin → Кирилл / Кирилл → Lotin** → convert all Uzbek text between alphabets.
+   - **EN → RU / RU → EN** → translate all captions between English and Russian,
+     offline. The first time it downloads a translation model (about 200 MB). Machine
+     translation is rough: read every line. Undo brings the original back.
    - **Undo** takes back the last change. **Reset** returns to the automatic transcript.
 4. **Pick a style.** Click a style card; the caption on the video changes at once.
    "Exact preview" shows one real frame exactly as it will be exported.
@@ -240,7 +243,8 @@ python -m pytest tests
   nudged by hand; single words inside a line cannot.
 - **The preview in the editor is approximate** (drawn by the browser). The "Exact preview"
   button and the export use the real renderer.
-- **Translation is not included** (see `DECISIONS.md` for why).
+- **Translation is only English ↔ Russian**, and rough. There is no free offline Uzbek
+  translator that may be used commercially (see `DECISIONS.md`).
 - **One video at a time**, on purpose. Long queues simply take longer.
 - Tested on Windows 11. The code uses nothing Windows-specific, but macOS and Linux were
   not tested while building.

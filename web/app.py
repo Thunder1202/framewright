@@ -212,6 +212,11 @@ def api_edit(job_id: str, payload: dict = Body(...)):
         new = [captions.set_line_text(l, translit.convert(l["text"], direction)) for l in lines]
         return _save_with_undo(job_id, new)
 
+    if op == "translate":
+        from engine import translate
+        source, target = payload.get("source"), payload.get("target")
+        return _save_with_undo(job_id, translate.translate_lines(lines, source, target))
+
     try:
         index = int(payload.get("line", -1))
     except (TypeError, ValueError):
