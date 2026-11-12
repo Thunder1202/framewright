@@ -61,3 +61,16 @@ def test_hallucinated_segments_are_dropped():
     assert not transcribe.looks_like_real_speech(Seg(start=13.82, end=13.90, avg_logprob=-1.02, no_speech_prob=0.0), two_words)
     assert not transcribe.looks_like_real_speech(Seg(start=0, end=2, avg_logprob=-1.5, no_speech_prob=0.9), two_words)
     assert transcribe.looks_like_real_speech(Seg(start=0, end=0.8, avg_logprob=-0.1, no_speech_prob=0.0), two_words)
+
+
+def test_english_is_chosen_when_confident():
+    allowed = ["uz", "ru", "en"]
+    assert transcribe.choose_language({"en": 0.95}, allowed) == "en"
+    assert transcribe.choose_language({"tr": 0.57, "en": 0.1}, allowed) == "uz"
+
+
+def test_known_hallucinations_are_recognised():
+    assert transcribe.is_known_hallucination("o 'zbek tilida o 'zbek tilida.")
+    assert transcribe.is_known_hallucination("o‘zbekistonda o‘tmoqda.")
+    assert not transcribe.is_known_hallucination("o‘zbek tilida gaplashamiz")
+    assert not transcribe.is_known_hallucination("legs up, looks simple")

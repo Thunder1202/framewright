@@ -98,7 +98,7 @@ def api_info():
 def api_upload(files: List[UploadFile] = File(...), language: str = Form("auto"), model: str = Form("")):
     """Receive one or more videos and put them in the queue."""
     if language not in config.LANGUAGES:
-        raise KadrError("Unknown language. Choose Uzbek, Russian or Auto.")
+        raise KadrError("Unknown language. Choose Uzbek, Russian, English or Auto.")
     max_bytes = config.load_settings()["max_upload_mb"] * 1024 * 1024
     created, problems = [], []
     for upload in files:

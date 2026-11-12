@@ -19,7 +19,7 @@ DEFAULTS = {
     "model_uz": "",               # optional: a different model just for Uzbek
     "model_ru": "",               # optional: a different model just for Russian
     "compute_type": "auto",       # auto = int8 on CPU, picked by a self-test on GPU
-    "auto_languages": ["uz", "ru"],  # languages considered in "auto" mode
+    "auto_languages": ["uz", "ru", "en"],  # languages considered in "auto" mode
     "max_video_seconds": 300,     # longer videos are rejected
     "max_upload_mb": 500,
     "port": 8000,
@@ -28,7 +28,7 @@ DEFAULTS = {
 
 DEFAULT_MODEL_CPU = "small"
 DEFAULT_MODEL_GPU = "medium"
-LANGUAGES = ("uz", "ru", "auto")
+LANGUAGES = ("uz", "ru", "en", "auto")
 VIDEO_EXTENSIONS = (".mp4", ".mov", ".mkv", ".webm", ".avi", ".m4v", ".3gp")
 
 

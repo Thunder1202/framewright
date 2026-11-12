@@ -8,6 +8,7 @@ that can be saved as JSON:
                    "words": [{"word": "Salom", "start": 0.5, "end": 0.9}, ...]}]}
 """
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -230,7 +231,23 @@ def looks_like_real_speech(seg, words):
         return False
     if seg.avg_logprob < -1.0 and seg.no_speech_prob > 0.5:
         return False
+    if is_known_hallucination(" ".join(w["word"] for w in words)):
+        return False
     return True
+
+
+# Phrases the Uzbek model writes during music or silence although nobody says them
+# (seen in testing, often repeated). Written without apostrophes, spaces or punctuation.
+KNOWN_HALLUCINATIONS = ("ozbektilida", "ozbekistondaotmoqda", "ozbekistondaotkaziladi",
+                        "subtitrlarmuallifi", "obunaboling")
+
+
+def is_known_hallucination(text):
+    """True if the text is only one of KNOWN_HALLUCINATIONS (possibly repeated)."""
+    squeezed = re.sub(r"[\W_]+", "", text.lower())
+    if not squeezed:
+        return False
+    return any(re.fullmatch("(?:" + phrase + ")+", squeezed) for phrase in KNOWN_HALLUCINATIONS)
 
 
 def _segment_dict(words, language):
@@ -339,7 +356,7 @@ def transcribe(audio_path, language="auto", model_name=None, progress=None):
     (and may give Uzbek and Russian different models).
     """
     if language not in config.LANGUAGES:
-        raise KadrError(f"Unknown language '{language}'. Use one of: uz, ru, auto.")
+        raise KadrError(f"Unknown language '{language}'. Use one of: uz, ru, en, auto.")
 
     from faster_whisper.audio import decode_audio
     try:

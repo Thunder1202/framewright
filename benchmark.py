@@ -50,7 +50,7 @@ def word_error_rate(reference, hypothesis):
 
 def language_for(video, default):
     """Language from the file name (_uz / _ru at the end), else the default."""
-    m = re.search(r"[_.\-](uz|ru)$", video.stem.lower())
+    m = re.search(r"[_.\-](uz|ru|en)$", video.stem.lower())
     return m.group(1) if m else default
 
 

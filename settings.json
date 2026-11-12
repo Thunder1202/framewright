@@ -3,7 +3,7 @@
   "model_uz": "yuldashev222/whisper-small-uz-v1-ct2",
   "model_ru": "",
   "compute_type": "auto",
-  "auto_languages": ["uz", "ru"],
+  "auto_languages": ["uz", "ru", "en"],
   "max_video_seconds": 300,
   "max_upload_mb": 500,
   "port": 8000,
