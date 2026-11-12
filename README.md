@@ -75,7 +75,9 @@ Without it, or if anything about the GPU fails, Kadr quietly uses the CPU.
 
 ## 2. Run and use
 
-Every time you want to use it (after activating `.venv` as above):
+**Easiest on Windows:** double-click `StartKadr.bat` in the project folder. The first time it installs everything; after that it just starts Kadr and opens your browser. Close the black window to stop it.
+
+Or, every time you want to use it (after activating `.venv` as above):
 
 ```bash
 python run.py
