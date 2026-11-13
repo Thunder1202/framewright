@@ -1,5 +1,7 @@
 # Kadr
 
+> **New here? Read [GUIDE.md](GUIDE.md)** — everything in plain words: how to start, every button, translation, settings and limits.
+
 1. Takes a short video (up to 5 minutes) with Uzbek, Russian or English speech, or a mix.
 2. Writes down what is said, word by word, using a free speech model that runs on your computer.
 3. Lets you fix the text and the timing in a simple web page.
