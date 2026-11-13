@@ -7,28 +7,36 @@
   <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
   <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
+<body class="home">
   <header class="top">
     <img src="/static/logo.svg" alt="" class="logo">
-    <h1>Kadr</h1>
-    <span class="sub">Auto-subtitles for Uzbek and Russian videos, on your own computer</span>
+    <div class="brand">
+      <h1>Kadr</h1>
+      <span class="sub">Auto-subtitles on your own computer · Uzbek, Russian, English</span>
+    </div>
     <span class="spacer"></span>
-    <span class="badge" id="device">…</span>
+    <span class="badge device" id="device">…</span>
   </header>
 
   <main class="page">
     <div id="message" class="message"></div>
 
-    <section class="panel">
-      <div class="tabs" id="modes">
-        <button data-mode="subs" class="on"><b>Subtitles</b><span>Captions in the language that is spoken</span></button>
-        <button data-mode="translate"><b>Translated subtitles</b><span>Speech in one language, captions in another</span></button>
+    <section class="panel upload">
+      <div class="panel-head">
+        <h2>New video</h2>
       </div>
-      <div id="drop" class="drop">
-        <strong>Drop videos here, or click to choose</strong>
-        <span id="limits">Several files at once are fine. They are processed one after another.</span>
-        <input id="file" type="file" accept="video/*,.mkv,.mov,.avi,.webm" multiple hidden>
+
+      <div class="tabs" id="modes" role="tablist">
+        <button data-mode="subs" class="on" role="tab">
+          <i class="ico">Aa</i>
+          <span class="txt"><b>Subtitles</b><span>Captions in the language that is spoken</span></span>
+        </button>
+        <button data-mode="translate" role="tab">
+          <i class="ico">⇄</i>
+          <span class="txt"><b>Translated subtitles</b><span>Speech in one language, captions in another</span></span>
+        </button>
       </div>
+
       <div class="options">
         <label class="field" id="languageField">Language spoken
           <select id="language">
@@ -66,14 +74,35 @@
         <label class="field">Speech model
           <select id="model"></select>
         </label>
-        <span class="hint">Tip: if the whole video is in one language, choose it. It is more accurate than Auto.
-          “Default” uses the models set in settings.json (a special Uzbek model for Uzbek speech). Picking a model here uses it for every language. The first use of a model downloads it once.</span>
       </div>
-      <div class="bar" id="uploadBar" style="margin-top:14px; display:none"><i></i></div>
+
+      <div id="drop" class="drop" tabindex="0" role="button">
+        <span class="drop-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m6 10 6-6 6 6"/><path d="M4 20h16"/></svg>
+        </span>
+        <strong>Drop videos here, or click to choose</strong>
+        <span id="limits">Several files at once are fine. They are processed one after another.</span>
+        <input id="file" type="file" accept="video/*,.mkv,.mov,.avi,.webm" multiple hidden>
+      </div>
+      <div class="bar" id="uploadBar" style="margin-top:12px; display:none"><i></i></div>
+
+      <details class="tips">
+        <summary>Tips for better results</summary>
+        <ul>
+          <li>If the whole video is in one language, choose it instead of Auto. It is more accurate.</li>
+          <li>“Default” model is the best choice: it uses a special Uzbek model for Uzbek speech.
+            Picking another model uses it for every language.</li>
+          <li>The first use of a model downloads it once (up to 1–2 GB).</li>
+          <li>Translation works only English ↔ Russian. Machine translation is rough: read every line.</li>
+        </ul>
+      </details>
     </section>
 
     <section class="panel">
-      <h2>Your videos <span id="disk" style="text-transform:none; letter-spacing:0; font-weight:400"></span></h2>
+      <div class="panel-head">
+        <h2>Your videos</h2>
+        <span class="pill" id="disk"></span>
+      </div>
       <div id="jobs"><div class="empty">Nothing here yet. Upload a video to start.</div></div>
     </section>
   </main>

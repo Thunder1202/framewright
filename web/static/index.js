@@ -35,8 +35,10 @@ async function loadInfo() {
       info.device === "cuda" ? "NVIDIA GPU found" : "Running on CPU";
     const select = document.getElementById("model");
     select.innerHTML = "";
-    const auto = new Option("Default (" + info.default_model + ")", "");
+    const auto = new Option("Default (recommended)", "");
+    auto.title = info.default_model;
     select.add(auto);
+    select.title = "Default: " + info.default_model;
     info.models.forEach(function (m) { select.add(new Option(m, m)); });
     document.getElementById("limits").textContent =
       "Several files at once are fine. Limit: " + Math.round(info.max_video_seconds / 60) +
@@ -94,7 +96,11 @@ function jobElement(job) {
   const left = document.createElement("div");
   const name = document.createElement("div");
   name.className = "name";
-  name.textContent = job.name;
+  name.title = job.name;
+  const fname = document.createElement("span");
+  fname.className = "fname";
+  fname.textContent = job.name;
+  name.append(fname);
   const opts = job.options || {};
   if (opts.translate_to) {
     const tag = document.createElement("span");
@@ -107,8 +113,9 @@ function jobElement(job) {
   meta.className = "meta";
   const parts = [job.stage];
   if (job.info && job.info.duration) parts.push(formatTime(job.info.duration));
-  if (job.status === "ready" && job.model) parts.push("model " + job.model + " on " + job.device);
+  if (job.status === "ready" && job.model) parts.push(shortModel(job.model) + " on " + (job.device === "cuda" ? "GPU" : "CPU"));
   meta.textContent = parts.filter(Boolean).join(" · ");
+  meta.title = meta.textContent;
   left.append(name, meta);
 
   const actions = document.createElement("div");
@@ -128,7 +135,8 @@ function jobElement(job) {
     const dl = document.createElement("a");
     dl.className = "button";
     dl.href = "/api/jobs/" + job.id + "/download/mp4";
-    dl.textContent = "Download";
+    dl.textContent = "↓ Download";
+    dl.title = "Download the finished video";
     actions.append(dl);
   }
   if (job.status === "error") {
@@ -178,7 +186,7 @@ async function refreshJobs() {
     return;
   }
   if (data.disk_bytes !== undefined) {
-    document.getElementById("disk").textContent = "· using " + formatBytes(data.disk_bytes) + " of disk space";
+    document.getElementById("disk").textContent = formatBytes(data.disk_bytes) + " on disk";
   }
   const text = JSON.stringify(data.jobs);
   if (text === lastJobsText) return;
@@ -194,6 +202,7 @@ async function refreshJobs() {
 
 drop.onclick = function () { fileInput.click(); };
 fileInput.onchange = function () { upload(Array.from(fileInput.files)); fileInput.value = ""; };
+drop.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); } };
 drop.ondragover = function (e) { e.preventDefault(); drop.classList.add("over"); };
 drop.ondragleave = function () { drop.classList.remove("over"); };
 drop.ondrop = function (e) {
@@ -201,6 +210,13 @@ drop.ondrop = function (e) {
   drop.classList.remove("over");
   upload(Array.from(e.dataTransfer.files));
 };
+
+// "medium + yuldashev222/whisper-small-uz-v1-ct2" -> "medium + Uzbek model"
+function shortModel(model) {
+  return String(model).split(" + ").map(function (m) {
+    return m.indexOf("/") >= 0 || /-uz/.test(m) ? "Uzbek model" : m;
+  }).join(" + ");
+}
 
 function formatBytes(n) {
   if (n >= 1e9) return (n / 1e9).toFixed(1) + " GB";

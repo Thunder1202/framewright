@@ -54,21 +54,66 @@ select, input[type=text] {
 label.field { display: inline-flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--muted); }
 
 /* ---- upload page ---- */
-.drop {
-  border: 2px dashed var(--line); border-radius: var(--radius); padding: 34px 20px; text-align: center;
-  color: var(--muted); cursor: pointer; transition: border-color .15s, background .15s;
-}
-.drop.over { border-color: var(--accent); background: rgba(79, 140, 255, .07); }
-.drop strong { color: var(--text); font-size: 17px; display: block; margin-bottom: 4px; }
-.options { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; margin-top: 14px; }
-.options .hint { color: var(--muted); font-size: 12.5px; flex: 1; min-width: 220px; }
+header.top .brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; min-width: 0; }
+body.home main.page { max-width: 920px; padding-top: 26px; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.panel-head h2 { margin: 0; }
+.pill { font-size: 12px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 99px; padding: 3px 10px; white-space: nowrap; }
+.pill:empty { display: none; }
+.panel.upload { padding: 18px; }
 
-.job { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; padding: 12px 0; border-top: 1px solid var(--line); }
-.job:first-of-type { border-top: 0; }
-.job .name { font-weight: 600; word-break: break-all; }
-.job .meta { color: var(--muted); font-size: 12.5px; }
-.job .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.tabs button { display: flex; align-items: center; gap: 12px; text-align: left; padding: 12px 14px; min-width: 0;
+  border-radius: 10px; transition: border-color .15s, background .15s; }
+.tabs button .ico { flex: none; width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center;
+  font-style: normal; font-weight: 700; font-size: 15px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.tabs button .txt { min-width: 0; }
+.tabs button b { display: block; font-size: 15px; }
+.tabs button .txt span { display: block; color: var(--muted); font-size: 12.5px; }
+.tabs button.on { border-color: var(--accent); background: rgba(79, 140, 255, .10); }
+.tabs button.on .ico { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.options { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.options .field select { width: 100%; }
+
+.drop {
+  border: 2px dashed #39404d; border-radius: 12px; padding: 30px 20px; text-align: center;
+  color: var(--muted); cursor: pointer; transition: border-color .15s, background .15s;
+  display: flex; flex-direction: column; align-items: center; gap: 4px; background: rgba(255, 255, 255, .015);
+}
+.drop:hover, .drop:focus-visible { border-color: #56627a; outline: none; }
+.drop.over { border-color: var(--accent); background: rgba(79, 140, 255, .07); }
+.drop .drop-ico { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(79, 140, 255, .14); color: var(--accent); margin-bottom: 6px; }
+.drop strong { color: var(--text); font-size: 17px; }
+.drop #limits { font-size: 13px; }
+
+.tips { margin-top: 12px; font-size: 13px; color: var(--muted); }
+.tips summary { cursor: pointer; width: max-content; max-width: 100%; }
+.tips summary:hover { color: var(--text); }
+.tips ul { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; }
+
+.job { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; padding: 14px 0; border-top: 1px solid var(--line); align-items: center; }
+.job:first-child { border-top: 0; padding-top: 4px; }
+.job .name { font-weight: 600; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.job .name .fname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.job .name .tag { margin-left: 0; flex: none; }
+.job .meta { color: var(--muted); font-size: 12.5px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job .actions { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
+.job .actions .button, .job .actions button { padding: 6px 12px; font-size: 14px; white-space: nowrap; }
+.job .actions .badge { margin-right: 4px; }
+.job .actions button.danger { color: var(--muted); }
 .job .err { color: var(--bad); font-size: 13px; grid-column: 1 / -1; }
+
+@media (max-width: 640px) {
+  header.top { padding: 10px 16px; gap: 10px; }
+  header.top .sub { display: none; }
+  body.home main.page { padding: 16px 16px 40px; }
+  .tabs { grid-template-columns: 1fr; }
+  .job { grid-template-columns: minmax(0, 1fr); }
+  .job .actions { justify-content: flex-start; flex-wrap: wrap; }
+}
 .bar { height: 6px; background: var(--panel-2); border-radius: 99px; overflow: hidden; grid-column: 1 / -1; }
 .bar > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .4s; }
 .empty { color: var(--muted); padding: 10px 0; }
@@ -111,11 +156,6 @@ label.inline { display: inline-flex; gap: 6px; align-items: center; font-size: 1
 .seg button { border: 0; border-radius: 0; border-right: 1px solid var(--line); }
 .seg button:last-child { border-right: 0; }
 .seg button.on { background: var(--accent); color: var(--accent-text); font-weight: 600; }
-.tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-.tabs button { flex: 1; min-width: 200px; text-align: left; padding: 12px 14px; }
-.tabs button b { display: block; font-size: 15.5px; }
-.tabs button span { color: var(--muted); font-size: 12.5px; }
-.tabs button.on { border-color: var(--accent); background: rgba(79, 140, 255, .12); }
 .tag { font-size: 11.5px; padding: 1px 7px; border-radius: 99px; background: #2a2340; color: #c9b8ff; border: 1px solid #4b3d78; margin-left: 6px; font-weight: 600; }
 .lines { overflow-y: auto; flex: 1; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
 .line { display: grid; grid-template-columns: 148px 1fr auto; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--line); align-items: center; }
