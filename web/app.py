@@ -23,6 +23,21 @@ app.mount("/fonts", StaticFiles(directory=config.FONTS_DIR), name="fonts")
 _preview_lock = threading.Lock()   # one preview picture at a time
 
 
+@app.middleware("http")
+async def always_fresh_pages(request, call_next):
+    """Make the browser check for a newer copy of pages, CSS and JS every time.
+
+    Without this, after an update the browser may mix the new page with old
+    saved CSS/JS and the page looks broken. Unchanged files are still not
+    downloaded again (the browser just gets "not modified").
+    """
+    response = await call_next(request)
+    path = request.url.path
+    if path == "/" or path == "/editor" or path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 # ---------- errors: always a short friendly JSON message, never a stack trace ----------
 
 @app.exception_handler(KadrError)
