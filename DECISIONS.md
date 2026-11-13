@@ -47,7 +47,11 @@ Built and tested on: Windows 11, Python 3.9.10, GTX 1650 (4 GB), FFmpeg 7.1.
 - **Timing is nudged per line in 0.1 s steps,** not per word: enough to fix what viewers notice, and simple.
 - **The browser preview is approximate (CSS); "Exact preview" renders one true frame with FFmpeg.** A pixel-exact live preview would need libass in the browser, which means a build step.
 - **A small 480p copy of the video is made for the player.** Browsers cannot play every phone format (HEVC, some .mov), and it keeps seeking fast.
-- **One-step Undo (pressing again redoes) and a Reset button.** Cheap safety net; full history was not worth the complexity.
+- **Undo/Redo history of 50 steps (Ctrl+Z / Ctrl+Y), plus Reset.** Each version is saved in `captions.history.json` in the job folder (a few KB each), so it survives a restart. Ctrl+Z inside a text box still undoes typing, as in any program.
+- **"Words per line" re-cuts the existing lines** (it does not re-transcribe), so text fixes are kept. With an exact number, lines never go over it; pauses and sentence ends still start a new line.
+- **Text size is a multiplier on the style (S 0.8, M 1.0, L 1.25, XL 1.5),** not a new style, so every style gets all sizes.
+- **Translated subtitles are a separate upload mode,** not buttons in the editor: the spoken language must be chosen by hand, and the original-language lines are kept in `captions.original.json`.
+- **Model downloads send a plain `User-Agent: Kadr/1.0`.** The Argos server started refusing Python's default one (403).
 - **Jobs are folders with JSON files, no database.** Easy to inspect, back up and delete by hand; written atomically so a crash cannot leave half a file.
 - **Batch mode is a single worker thread with a queue; unfinished jobs resume on restart.** Two transcriptions at once would just compete for the same CPU/GPU.
 - **The server listens on 127.0.0.1 only.** Nothing on the network can reach it; there is no login because there is nobody else.

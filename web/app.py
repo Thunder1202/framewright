@@ -12,7 +12,7 @@ from fastapi import Body, FastAPI, File, Form, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from engine import captions, config, jobs, render, styles, transcribe, translit, worker
+from engine import captions, config, jobs, pipeline, render, styles, transcribe, translate, translit, worker
 from engine.errors import KadrError
 
 WEB_DIR = Path(__file__).resolve().parent
@@ -89,16 +89,32 @@ def api_info():
         "max_video_seconds": settings["max_video_seconds"],
         "max_upload_mb": settings["max_upload_mb"],
         "extensions": list(config.VIDEO_EXTENSIONS),
+        "sizes": styles.SIZES,
+        "words_choices": list(captions.WORDS_CHOICES),
+        "translation_pairs": [list(p) for p in translate.available_pairs()],
     }
 
 
 # ---------- jobs ----------
 
 @app.post("/api/jobs")
-def api_upload(files: List[UploadFile] = File(...), language: str = Form("auto"), model: str = Form("")):
-    """Receive one or more videos and put them in the queue."""
+def api_upload(files: List[UploadFile] = File(...), language: str = Form("auto"), model: str = Form(""),
+               max_words: str = Form(""), translate_to: str = Form("")):
+    """Receive one or more videos and put them in the queue.
+
+    translate_to empty = normal subtitles; "ru"/"en" = translated subtitles.
+    """
     if language not in config.LANGUAGES:
         raise KadrError("Unknown language. Choose Uzbek, Russian, English or Auto.")
+    translate_to = translate_to.strip() or None
+    if translate_to:
+        if language == "auto":
+            raise KadrError("For translated subtitles, choose the language that is spoken in the video.")
+        if not translate.can_translate(language, translate_to):
+            raise KadrError("This translation is not available. Only English → Russian and "
+                            "Russian → English can be translated offline.")
+    options = {"language": language, "model": model.strip() or None,
+               "max_words": captions.clean_max_words(max_words), "translate_to": translate_to}
     max_bytes = config.load_settings()["max_upload_mb"] * 1024 * 1024
     created, problems = [], []
     for upload in files:
@@ -107,7 +123,7 @@ def api_upload(files: List[UploadFile] = File(...), language: str = Form("auto")
             problems.append(f"{name}: not a supported video type "
                             f"({', '.join(config.VIDEO_EXTENSIONS)}).")
             continue
-        job = jobs.create_job(name, {"language": language, "model": model.strip() or None})
+        job = jobs.create_job(name, options)
         target = jobs.job_dir(job["id"]) / job["video_file"]
         with open(target, "wb") as f:
             shutil.copyfileobj(upload.file, f, length=1024 * 1024)
@@ -129,7 +145,7 @@ def api_list_jobs():
     for job in jobs.list_jobs():
         job["has_output"] = (config.JOBS_DIR / job["id"] / "output.mp4").is_file()
         result.append(job)
-    return {"jobs": result}
+    return {"jobs": result, "disk_bytes": jobs.folder_size()}
 
 
 @app.get("/api/jobs/{job_id}")
@@ -159,51 +175,63 @@ def api_retry_job(job_id: str):
 
 # ---------- captions ----------
 
+def _answer(job_id, lines):
+    """What the editor gets back after loading or changing captions."""
+    return {"lines": lines, "history": jobs.history_counts(job_id)}
+
+
 @app.get("/api/jobs/{job_id}/captions")
 def api_get_captions(job_id: str):
-    """The caption lines of a job."""
-    return {"lines": jobs.load_captions(job_id)}
+    """The caption lines of a job, and how many Undo/Redo steps there are."""
+    return _answer(job_id, jobs.load_captions(job_id))
 
 
 def _save_with_undo(job_id, new_lines):
-    """Save new lines, keeping the previous version for the Undo button."""
-    folder = jobs.job_dir(job_id)
-    if (folder / "captions.json").is_file():
-        shutil.copy(folder / "captions.json", folder / "captions.undo.json")
-    jobs.save_captions(job_id, new_lines)
-    return {"lines": new_lines}
+    """Save new lines; the previous version goes onto the Undo history."""
+    jobs.save_captions_with_history(job_id, new_lines)
+    return _answer(job_id, new_lines)
 
 
 @app.post("/api/jobs/{job_id}/edit")
 def api_edit(job_id: str, payload: dict = Body(...)):
     """Apply one editing action and return the new lines.
 
-    payload["op"] is one of: text, times, nudge, split, merge, delete,
-    translit, reset, undo. The other keys depend on the action.
+    payload["op"] is one of: text, nudge, split, merge, delete, insert,
+    words, translit, translate, reset, undo, redo. The other keys depend on the action.
     """
     op = payload.get("op")
     lines = jobs.load_captions(job_id)
-    folder = jobs.job_dir(job_id)
 
     if op == "undo":
-        undo_file = folder / "captions.undo.json"
-        if not undo_file.is_file():
-            raise KadrError("Nothing to undo.")
-        current = folder / "captions.json"
-        swap = folder / "captions.swap.json"
-        shutil.copy(current, swap)
-        shutil.copy(undo_file, current)
-        shutil.move(str(swap), str(undo_file))     # so a second Undo is a Redo
-        return {"lines": jobs.load_captions(job_id)}
+        return _answer(job_id, jobs.undo_captions(job_id))
+    if op == "redo":
+        return _answer(job_id, jobs.redo_captions(job_id))
+
+    if op == "words":
+        # Re-cut all lines with a new number of words per line (text edits are kept).
+        max_words = captions.clean_max_words(payload.get("max_words"))
+        job = jobs.load_job(job_id)
+        jobs.update_job(job_id, options=dict(job.get("options", {}), max_words=max_words))
+        return _save_with_undo(job_id, captions.reflow(lines, max_words))
+
+    if op == "insert":
+        try:
+            after = int(payload.get("line", -1))
+        except (TypeError, ValueError):
+            after = -1
+        after = max(-1, min(after, len(lines) - 1))
+        text = " ".join(str(payload.get("text") or "New line").split()) or "New line"
+        return _save_with_undo(job_id, captions.insert_line(lines, after, text))
 
     if op == "reset":
-        import json
-        try:
-            with open(folder / "transcript.json", encoding="utf-8") as f:
-                transcript = json.load(f)
-        except (OSError, ValueError):
+        transcript = jobs.load_json(job_id, "transcript.json")
+        if not transcript:
             raise KadrError("The original transcript is not available.")
-        return _save_with_undo(job_id, captions.split_into_lines(transcript["segments"]))
+        options = jobs.load_job(job_id).get("options", {})
+        new = pipeline.build_lines(transcript, options)
+        if options.get("translate_to"):
+            new = pipeline.translate_transcript_lines(new, transcript["language"], options["translate_to"], options)
+        return _save_with_undo(job_id, new)
 
     if op == "translit":
         direction = payload.get("direction")
@@ -213,9 +241,9 @@ def api_edit(job_id: str, payload: dict = Body(...)):
         return _save_with_undo(job_id, new)
 
     if op == "translate":
-        from engine import translate
         source, target = payload.get("source"), payload.get("target")
-        return _save_with_undo(job_id, translate.translate_lines(lines, source, target))
+        max_words = captions.clean_max_words(jobs.load_job(job_id).get("options", {}).get("max_words"))
+        return _save_with_undo(job_id, translate.translate_lines(lines, source, target, max_words))
 
     try:
         index = int(payload.get("line", -1))
@@ -248,15 +276,41 @@ def api_edit(job_id: str, payload: dict = Body(...)):
 
 # ---------- export + files ----------
 
+def _clean_look(payload):
+    """The editor's look settings, checked: style, size, vertical, title, title_seconds."""
+    try:
+        seconds = max(0.0, min(float(payload.get("title_seconds") or 0), 3600.0))
+    except (TypeError, ValueError):
+        seconds = 0.0
+    return {
+        "style": str(payload.get("style") or ""),
+        "size": payload.get("size") if payload.get("size") in styles.SIZES else "medium",
+        "vertical": bool(payload.get("vertical")),
+        "title": " ".join(str(payload.get("title") or "").split())[:200],
+        "title_seconds": seconds,
+    }
+
+
+@app.post("/api/jobs/{job_id}/look")
+def api_save_look(job_id: str, payload: dict = Body(...)):
+    """Remember the editor's look settings for this video."""
+    look = _clean_look(payload)
+    jobs.update_job(job_id, look=look)
+    return {"look": look}
+
+
 @app.post("/api/jobs/{job_id}/export")
 def api_export(job_id: str, payload: dict = Body(...)):
     """Queue the final render."""
     job = jobs.load_job(job_id)
     if job.get("status") != "ready":
         raise KadrError("This video is busy or not ready yet.")
-    style = styles.get_style(payload.get("style"))      # checks the style exists
+    look = _clean_look(payload)
+    style = styles.get_style(look["style"] or None)      # checks the style exists
     jobs.load_captions(job_id)
-    worker.enqueue_export(job_id, style["id"], bool(payload.get("vertical")))
+    jobs.update_job(job_id, look=look)
+    worker.enqueue_export(job_id, style["id"], look["vertical"], size=look["size"],
+                          title={"text": look["title"], "seconds": look["title_seconds"]})
     return {"ok": True}
 
 
@@ -270,15 +324,16 @@ def api_video(job_id: str):
 
 
 @app.get("/api/jobs/{job_id}/frame")
-def api_frame(job_id: str, t: float = 0.0, style: str = "", vertical: bool = False):
+def api_frame(job_id: str, t: float = 0.0, style: str = "", vertical: bool = False, size: str = "medium",
+              title: str = "", title_seconds: float = 0.0):
     """One picture of the video at time t with captions, exactly like the export."""
     job = jobs.load_job(job_id)
     folder = jobs.job_dir(job_id)
     lines = jobs.load_captions(job_id)
     with _preview_lock:
-        out = render.render_frame(folder / job["video_file"], lines, styles.get_style(style or None),
+        out = render.render_frame(folder / job["video_file"], lines, styles.get_style(style or None, size),
                                   t, folder / "frame.jpg", folder, info=job.get("info") or None,
-                                  vertical=vertical)
+                                  vertical=vertical, title={"text": title, "seconds": title_seconds})
         data = Path(out).read_bytes()
     from fastapi.responses import Response
     return Response(data, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
@@ -290,12 +345,18 @@ def api_download(job_id: str, kind: str):
     job = jobs.load_job(job_id)
     folder = jobs.job_dir(job_id)
     stem = Path(job.get("name", "video")).stem
-    if kind == "srt" and not (folder / "output.srt").is_file():
-        # SRT does not need a render: make it on the spot.
+    if kind == "srt":
+        # SRT does not need a render: always make it from the current lines.
         (folder / "output.srt").write_text(captions.to_srt(jobs.load_captions(job_id)), encoding="utf-8")
+    if kind == "original_srt":
+        original = jobs.load_json(job_id, "captions.original.json")
+        if not original:
+            raise KadrError("This video has no original-language subtitles (it was not translated).")
+        (folder / "original.srt").write_text(captions.to_srt(original), encoding="utf-8")
     files = {
         "mp4": ("output.mp4", f"{stem}.captioned.mp4", "video/mp4"),
         "srt": ("output.srt", f"{stem}.srt", "application/x-subrip"),
+        "original_srt": ("original.srt", f"{stem}.original.srt", "application/x-subrip"),
         "json": ("transcript.json", f"{stem}.transcript.json", "application/json"),
     }
     if kind not in files:

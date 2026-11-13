@@ -20,18 +20,47 @@
     <div id="message" class="message"></div>
 
     <section class="panel">
+      <div class="tabs" id="modes">
+        <button data-mode="subs" class="on"><b>Subtitles</b><span>Captions in the language that is spoken</span></button>
+        <button data-mode="translate"><b>Translated subtitles</b><span>Speech in one language, captions in another</span></button>
+      </div>
       <div id="drop" class="drop">
         <strong>Drop videos here, or click to choose</strong>
         <span id="limits">Several files at once are fine. They are processed one after another.</span>
         <input id="file" type="file" accept="video/*,.mkv,.mov,.avi,.webm" multiple hidden>
       </div>
       <div class="options">
-        <label class="field">Language spoken
+        <label class="field" id="languageField">Language spoken
           <select id="language">
             <option value="auto">Auto (Uzbek + Russian + English)</option>
             <option value="uz">Uzbek</option>
             <option value="ru">Russian</option>
             <option value="en">English</option>
+          </select>
+        </label>
+        <label class="field" id="fromField" style="display:none">Language spoken
+          <select id="fromLang">
+            <option value="en">English</option>
+            <option value="ru">Russian</option>
+            <option value="uz" disabled>Uzbek (not available)</option>
+          </select>
+        </label>
+        <label class="field" id="toField" style="display:none">Subtitles in
+          <select id="toLang">
+            <option value="ru">Russian</option>
+            <option value="en">English</option>
+            <option value="uz" disabled>Uzbek (not available)</option>
+          </select>
+        </label>
+        <label class="field">Words per line
+          <select id="maxWords">
+            <option value="">Auto (2–6)</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
           </select>
         </label>
         <label class="field">Speech model
@@ -44,7 +73,7 @@
     </section>
 
     <section class="panel">
-      <h2>Your videos</h2>
+      <h2>Your videos <span id="disk" style="text-transform:none; letter-spacing:0; font-weight:400"></span></h2>
       <div id="jobs"><div class="empty">Nothing here yet. Upload a video to start.</div></div>
     </section>
   </main>

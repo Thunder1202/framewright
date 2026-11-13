@@ -13,6 +13,8 @@ STYLE_DEFAULTS = {
     "box_opacity": 80, "box_padding_x": 24, "box_padding_y": 10, "box_radius": 20,
     "position": "bottom", "margin": 14, "max_width": 86,
 }
+# "Text size" choice in the editor: multiplies the style's font_size.
+SIZES = {"small": 0.8, "medium": 1.0, "large": 1.25, "xl": 1.5}
 # Letters every caption font must contain (Uzbek Latin + Cyrillic + Russian).
 REQUIRED_CHARS = "o‘g‘ʻʼ’ўқғҳЎҚҒҲёъэюяшчцщыьжй"
 
@@ -40,14 +42,22 @@ def load_styles(path=None):
     return styles
 
 
-def get_style(style_id=None):
-    """Return one style by id (the first style in the file if id is empty)."""
+def get_style(style_id=None, size=None):
+    """Return one style by id (the first style in the file if id is empty).
+
+    size: "small", "medium", "large" or "xl" makes the text smaller or bigger.
+    """
     styles = load_styles()
     if not style_id:
-        return next(iter(styles.values()))
-    if style_id not in styles:
+        style = next(iter(styles.values()))
+    elif style_id not in styles:
         raise KadrError(f"Unknown style '{style_id}'. Available: {', '.join(styles)}")
-    return styles[style_id]
+    else:
+        style = styles[style_id]
+    style = dict(style)
+    style["size"] = size if size in SIZES else "medium"
+    style["font_size"] = style["font_size"] * SIZES[style["size"]]
+    return style
 
 
 class Font:

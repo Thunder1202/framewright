@@ -87,7 +87,7 @@ label.field { display: inline-flex; flex-direction: column; gap: 4px; font-size:
 .stage { position: relative; background: #000; border-radius: var(--radius); overflow: hidden; display: flex; justify-content: center; }
 .stage video { display: block; max-width: 100%; max-height: 56vh; }
 .overlay { position: absolute; left: 0; top: 0; pointer-events: none; overflow: hidden; }
-.overlay .cap { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; width: max-content; }
+.overlay .cap { display: none; position: absolute; left: 50%; transform: translateX(-50%); text-align: center; width: max-content; }
 .overlay .cap .txt { display: inline; white-space: pre-wrap; text-wrap: balance; }
 .overlay .cap.box-line .txt { -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .note { color: var(--muted); font-size: 12.5px; margin: 8px 0 0; }
@@ -105,6 +105,18 @@ label.field { display: inline-flex; flex-direction: column; gap: 4px; font-size:
 
 .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
 .toolbar .spacer { flex: 1; }
+label.inline { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); }
+.row .label { font-size: 13px; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--accent-text); font-weight: 600; }
+.tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.tabs button { flex: 1; min-width: 200px; text-align: left; padding: 12px 14px; }
+.tabs button b { display: block; font-size: 15.5px; }
+.tabs button span { color: var(--muted); font-size: 12.5px; }
+.tabs button.on { border-color: var(--accent); background: rgba(79, 140, 255, .12); }
+.tag { font-size: 11.5px; padding: 1px 7px; border-radius: 99px; background: #2a2340; color: #c9b8ff; border: 1px solid #4b3d78; margin-left: 6px; font-weight: 600; }
 .lines { overflow-y: auto; flex: 1; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
 .line { display: grid; grid-template-columns: 148px 1fr auto; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--line); align-items: center; }
 .line.now { background: #1d2636; }

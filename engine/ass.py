@@ -76,11 +76,16 @@ def layout_rows(words, font, font_size, max_width):
     return rows, font_size
 
 
-def build_ass(lines, style, width, height):
+TITLE_SCALE = 0.85            # title text is a bit smaller than the captions
+
+
+def build_ass(lines, style, width, height, title=None):
     """Return the full text of an .ass file for these caption lines.
 
     lines: caption lines (see captions.py). style: one preset from styles.json.
     width/height: size of the video the captions will be burned into.
+    title: optional {"text", "start", "end"}: a fixed text (a hook, a name)
+    shown at the top, or at the bottom if the captions are at the top.
     """
     font = styles_mod.load_font(style["font"])
     scale = min(width, height) / REFERENCE_WIDTH
@@ -201,7 +206,38 @@ def build_ass(lines, style, width, height):
                 text = f"{{\\an5\\pos({cx:.1f},{cy:.1f}){size_tag}}}" + " ".join(parts)
                 add(1, step_start, step_end, text)
 
+    if title and str(title.get("text", "")).strip():
+        _add_title(add, title, style, font, width, height, scale, base_size, max_width, pad_x, pad_y,
+                   text_color, box_color, box_alpha, vertical)
+
     events.sort(key=lambda ev: (ev[1], ev[0]))
     body = [f"Dialogue: {layer},{ass_time(start)},{ass_time(end)},Default,,0,0,0,,{text}"
             for layer, start, end, text in events if ass_time(end) != ass_time(start)]
     return "\n".join(header + body) + "\n"
+
+
+def _add_title(add, title, style, font, width, height, scale, base_size, max_width, pad_x, pad_y,
+               text_color, box_color, box_alpha, vertical):
+    """Add the events for the title text (no word highlighting)."""
+    words = [escape_text(w) for w in str(title["text"]).split()]
+    if style["uppercase"]:
+        words = [w.upper() for w in words]
+    rows, size = layout_rows(words, font, base_size * TITLE_SCALE, max_width)
+    pitch = size + 2 * pad_y + size * ROW_GAP
+    block = pitch * len(rows) - size * ROW_GAP
+    if style["position"] == "top":
+        top = height * (1 - (VERTICAL_SAFE_BOTTOM if vertical else 8) / 100) - block
+    else:
+        top = height * (VERTICAL_SAFE_TOP if vertical else 7) / 100
+    start, end = float(title.get("start", 0)), float(title["end"])
+    cx = width / 2
+    draw_tag = f"{{\\an7\\pos(0,0)\\bord0\\shad0\\1c{box_color}\\1a{box_alpha}\\p1}}"
+    for r, indexes in enumerate(rows):
+        cy = top + pad_y + size / 2 + r * pitch
+        text = " ".join(words[i] for i in indexes)
+        if style.get("box", "none") != "none":
+            row_width = font.text_width(text, size)
+            shape = rounded_box(cx - row_width / 2 - pad_x, cy - size / 2 - pad_y, cx + row_width / 2 + pad_x,
+                                cy + size / 2 + pad_y, style["box_radius"] * scale)
+            add(2, start, end, draw_tag + shape)
+        add(3, start, end, f"{{\\an5\\pos({cx:.1f},{cy:.1f})\\fs{size:.1f}\\1c{text_color}}}{text}")

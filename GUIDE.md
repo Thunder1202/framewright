@@ -87,9 +87,10 @@ The video is on the left, the caption lines on the right.
 | Delete a line | **✕** |
 | Make a line start/end earlier or later | **−** / **+** next to the times (0.1 s per click) |
 | Switch Uzbek between alphabets | **Lotin → Кирилл** or **Кирилл → Lotin** |
-| Translate English captions to Russian | **EN → RU** |
-| Translate Russian captions to English | **RU → EN** |
-| Take back the last change | **Undo** (press again to redo) |
+| Choose how many words each line has | **Words per line** (Auto, or exactly 1–6). Your text fixes are kept |
+| Add a new line | **+** on a line (adds one after it), or **+ Line at start** |
+| Take back changes | **↶ Undo** or **Ctrl+Z**, as many steps as you want (up to 50) |
+| Bring a change back after Undo | **↷ Redo** or **Ctrl+Y** |
 | Throw away all edits | **Reset** (goes back to the automatic transcript) |
 | Get only the subtitle file | **.srt** |
 
@@ -107,6 +108,12 @@ Click a style card. The caption on the video changes at once.
 | **Minimal** | Small, quiet text at the bottom |
 | **Word box** | A purple box jumps from word to word |
 
+**Text size:** Small, Medium, Large or XL. The preview on the video changes at once.
+
+**Title text (optional):** a fixed text such as a hook ("Wait for the end!"), a name or "Part 1". Choose how long it shows: first 3, 5 or 10 seconds, or the whole video. It sits at the top (at the bottom if the captions are at the top).
+
+Style, size, title and 9:16 are remembered for each video.
+
 The preview on the video is approximate. **Exact preview** shows one real frame exactly as it will be exported.
 
 ### Step 5 — Export
@@ -116,9 +123,12 @@ The preview on the video is approximate. **Exact preview** shows one real frame 
 
 ---
 
-## 5. Translation (English ↔ Russian)
+## 5. Translated subtitles (English ↔ Russian)
 
-- Click **EN → RU** or **RU → EN** in the editor. It takes a few seconds.
+- On the upload page, choose the **Translated subtitles** tab (the normal **Subtitles** tab is separate).
+  Pick the language spoken and the language of the subtitles, then upload.
+- The video is transcribed and then translated automatically. In the list it has a tag like **EN → RU**.
+- In the editor you edit the translated lines. **Original .srt** downloads the subtitles in the spoken language. **Reset** translates again from the start.
 - It works offline and is free (Argos Translate models).
 - **It is rough.** It gets the basic meaning, but slang and special words go wrong.
   Example from a real fitness video:

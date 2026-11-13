@@ -34,11 +34,27 @@ def _filter_graph(info, vertical, ass_name):
     )
 
 
-def write_ass(lines, style, info, vertical, work_dir, ass_name="captions.ass"):
+def title_times(title, duration):
+    """Turn {"text", "seconds"} into {"text", "start", "end"} for the .ass file.
+
+    seconds 0 (or missing) = the title stays for the whole video.
+    """
+    if not title or not str(title.get("text", "")).strip():
+        return None
+    try:
+        seconds = float(title.get("seconds") or 0)
+    except (TypeError, ValueError):
+        seconds = 0
+    end = seconds if seconds > 0 else (duration or 36000)
+    return {"text": str(title["text"]).strip(), "start": 0.0, "end": end}
+
+
+def write_ass(lines, style, info, vertical, work_dir, ass_name="captions.ass", title=None):
     """Write the .ass file and copy the font next to it. Returns the .ass path."""
     work_dir = Path(work_dir)
     width, height = output_size(info, vertical)
-    (work_dir / ass_name).write_text(ass.build_ass(lines, style, width, height), encoding="utf-8")
+    text = ass.build_ass(lines, style, width, height, title=title_times(title, info.get("duration")))
+    (work_dir / ass_name).write_text(text, encoding="utf-8")
     fonts = work_dir / "fonts"
     fonts.mkdir(exist_ok=True)
     font_path = load_font(style["font"]).path
@@ -47,7 +63,7 @@ def write_ass(lines, style, info, vertical, work_dir, ass_name="captions.ass"):
     return work_dir / ass_name
 
 
-def render_video(video_path, lines, style, out_path, work_dir, info=None, vertical=False, progress=None):
+def render_video(video_path, lines, style, out_path, work_dir, info=None, vertical=False, progress=None, title=None):
     """Export an .mp4 with the captions burned into the picture.
 
     work_dir is a folder where captions.ass and the font are written. We run
@@ -56,7 +72,7 @@ def render_video(video_path, lines, style, out_path, work_dir, info=None, vertic
     """
     video_path, out_path, work_dir = Path(video_path).resolve(), Path(out_path).resolve(), Path(work_dir).resolve()
     info = info or ffmpeg_tools.probe(video_path)
-    write_ass(lines, style, info, vertical, work_dir)
+    write_ass(lines, style, info, vertical, work_dir, title=title)
     args = ["-i", video_path, "-filter_complex", _filter_graph(info, vertical, "captions.ass"),
             "-map", "[out]", "-map", "0:a:0?",
             "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
@@ -66,11 +82,11 @@ def render_video(video_path, lines, style, out_path, work_dir, info=None, vertic
     return out_path
 
 
-def render_frame(video_path, lines, style, time_sec, out_path, work_dir, info=None, vertical=False):
+def render_frame(video_path, lines, style, time_sec, out_path, work_dir, info=None, vertical=False, title=None):
     """Save one frame (PNG/JPG) with captions, exactly as the export will look."""
     video_path, out_path, work_dir = Path(video_path).resolve(), Path(out_path).resolve(), Path(work_dir).resolve()
     info = info or ffmpeg_tools.probe(video_path)
-    write_ass(lines, style, info, vertical, work_dir, ass_name="preview.ass")
+    write_ass(lines, style, info, vertical, work_dir, ass_name="preview.ass", title=title)
     time_sec = max(0.0, min(float(time_sec), max(info.get("duration", 0) - 0.1, 0)))
     # -copyts keeps the original clock, so the subtitle for this moment is drawn.
     args = ["-ss", f"{time_sec:.3f}", "-copyts", "-i", video_path,

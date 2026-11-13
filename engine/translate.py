@@ -37,6 +37,11 @@ _loaded = {}              # (source, target) -> (translator, sentencepiece proce
 _lock = threading.Lock()
 
 
+def can_translate(source, target):
+    """True if this language pair is offered."""
+    return (source, target) in PACKAGES
+
+
 def available_pairs():
     """Language pairs we can translate, e.g. [("en", "ru"), ("ru", "en")]."""
     return list(PACKAGES)
@@ -52,7 +57,10 @@ def _download(url, dest, attempts=6):
     part = Path(str(dest) + ".part")
     for attempt in range(attempts):
         have = part.stat().st_size if part.exists() else 0
-        request = urllib.request.Request(url, headers={"Range": f"bytes={have}-"} if have else {})
+        headers = {"User-Agent": "Kadr/1.0"}     # the server refuses Python's default name
+        if have:
+            headers["Range"] = f"bytes={have}-"
+        request = urllib.request.Request(url, headers=headers)
         try:
             with urllib.request.urlopen(request, timeout=60) as response:
                 if have and response.status != 206:
@@ -80,7 +88,7 @@ def ensure_model(source, target):
     MODELS_DIR.mkdir(exist_ok=True)
     archive = MODELS_DIR / f"translate-{source}_{target}.zip"
     if not archive.exists():
-        print(f"[Kadr] Downloading the {source}→{target} translation model (about 200 MB, only once)...")
+        print(f"[Kadr] Downloading the {source}->{target} translation model (about 200 MB, only once)...")
         _download(PACKAGES[(source, target)], archive)
     try:
         if folder.exists():
@@ -147,7 +155,7 @@ def _sentence_groups(lines):
     return groups
 
 
-def translate_lines(lines, source, target):
+def translate_lines(lines, source, target, max_words=None):
     """Translate caption lines. Each sentence keeps its start and end time;
     the translated words are spread over that time and split into new lines."""
     if not lines:
@@ -160,5 +168,5 @@ def translate_lines(lines, source, target):
         start, end = lines[group[0]]["start"], lines[group[-1]]["end"]
         words = spread_words(text, start, end)
         if words:
-            result.extend(split_into_lines([{"words": words}], max_pause=999))
+            result.extend(split_into_lines([{"words": words}], max_words=max_words, max_pause=999))
     return result

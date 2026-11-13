@@ -133,7 +133,101 @@ def load_captions(job_id, jobs_dir=None):
             raise KadrError("The saved captions are damaged and could not be read.")
 
 
+def save_json(job_id, name, data, jobs_dir=None):
+    """Save any JSON file inside a job folder."""
+    with _lock:
+        _write_json(job_dir(job_id, jobs_dir) / name, data)
+
+
+def load_json(job_id, name, jobs_dir=None):
+    """Read a JSON file from a job folder, or None if it is missing or broken."""
+    with _lock:
+        try:
+            return _read_json(job_dir(job_id, jobs_dir) / name)
+        except (OSError, ValueError):
+            return None
+
+
+def folder_size(jobs_dir=None):
+    """Total size in bytes of everything in the jobs folder."""
+    total = 0
+    for path in _root(jobs_dir).rglob("*"):
+        try:
+            if path.is_file():
+                total += path.stat().st_size
+        except OSError:
+            pass
+    return total
+
+
 def save_transcript(job_id, transcript, jobs_dir=None):
     """Save the raw transcript of a job."""
     with _lock:
         _write_json(job_dir(job_id, jobs_dir) / "transcript.json", transcript)
+
+
+# ---------- undo / redo history ----------
+# captions.history.json holds {"undo": [older versions...], "redo": [...]}.
+# Each version is a full list of lines (a few KB), so this stays small.
+
+HISTORY_LIMIT = 50          # how many steps back Undo can go
+
+
+def _history_path(job_id, jobs_dir=None):
+    return job_dir(job_id, jobs_dir) / "captions.history.json"
+
+
+def _load_history(job_id, jobs_dir=None):
+    try:
+        data = _read_json(_history_path(job_id, jobs_dir))
+        if isinstance(data.get("undo"), list) and isinstance(data.get("redo"), list):
+            return data
+    except (OSError, ValueError, AttributeError):
+        pass
+    return {"undo": [], "redo": []}
+
+
+def history_counts(job_id, jobs_dir=None):
+    """How many Undo and Redo steps are available: {"undo": n, "redo": n}."""
+    with _lock:
+        h = _load_history(job_id, jobs_dir)
+        return {"undo": len(h["undo"]), "redo": len(h["redo"])}
+
+
+def save_captions_with_history(job_id, new_lines, jobs_dir=None):
+    """Save new lines; the current version goes onto the Undo list. Redo is cleared."""
+    with _lock:
+        h = _load_history(job_id, jobs_dir)
+        try:
+            current = load_captions(job_id, jobs_dir)
+        except KadrError:
+            current = None
+        if current is not None and current != new_lines:
+            h["undo"] = (h["undo"] + [current])[-HISTORY_LIMIT:]
+            h["redo"] = []
+        save_captions(job_id, new_lines, jobs_dir)
+        _write_json(_history_path(job_id, jobs_dir), h)
+        return {"undo": len(h["undo"]), "redo": len(h["redo"])}
+
+
+def _step(job_id, jobs_dir, take, give, nothing_message):
+    with _lock:
+        h = _load_history(job_id, jobs_dir)
+        if not h[take]:
+            raise KadrError(nothing_message)
+        current = load_captions(job_id, jobs_dir)
+        previous = h[take].pop()
+        h[give] = (h[give] + [current])[-HISTORY_LIMIT:]
+        save_captions(job_id, previous, jobs_dir)
+        _write_json(_history_path(job_id, jobs_dir), h)
+        return previous
+
+
+def undo_captions(job_id, jobs_dir=None):
+    """Go one step back. Returns the restored lines."""
+    return _step(job_id, jobs_dir, "undo", "redo", "Nothing to undo.")
+
+
+def redo_captions(job_id, jobs_dir=None):
+    """Go one step forward again after Undo. Returns the restored lines."""
+    return _step(job_id, jobs_dir, "redo", "undo", "Nothing to redo.")

@@ -4,6 +4,28 @@ const drop = document.getElementById("drop");
 const fileInput = document.getElementById("file");
 const uploadBar = document.getElementById("uploadBar");
 let lastJobsText = "";   // used to skip redrawing when nothing changed
+let mode = localStorage.getItem("kadr-mode") || "subs";   // "subs" or "translate"
+const LANG_SHORT = { en: "EN", ru: "RU", uz: "UZ" };
+
+// Switch between "Subtitles" and "Translated subtitles".
+function setMode(m) {
+  mode = m;
+  try { localStorage.setItem("kadr-mode", m); } catch (e) { /* ignore */ }
+  document.querySelectorAll("#modes button").forEach(function (b) { b.classList.toggle("on", b.dataset.mode === m); });
+  const t = m === "translate";
+  document.getElementById("languageField").style.display = t ? "none" : "";
+  document.getElementById("fromField").style.display = t ? "" : "none";
+  document.getElementById("toField").style.display = t ? "" : "none";
+}
+document.querySelectorAll("#modes button").forEach(function (b) { b.onclick = function () { setMode(b.dataset.mode); }; });
+
+// The subtitle language can never be the same as the spoken one.
+document.getElementById("fromLang").onchange = function () {
+  document.getElementById("toLang").value = this.value === "en" ? "ru" : "en";
+};
+document.getElementById("toLang").onchange = function () {
+  document.getElementById("fromLang").value = this.value === "en" ? "ru" : "en";
+};
 
 // Fill the model list and the device badge.
 async function loadInfo() {
@@ -30,8 +52,14 @@ function upload(files) {
   hideMessage();
   const form = new FormData();
   for (const f of files) form.append("files", f);
-  form.append("language", document.getElementById("language").value);
+  if (mode === "translate") {
+    form.append("language", document.getElementById("fromLang").value);
+    form.append("translate_to", document.getElementById("toLang").value);
+  } else {
+    form.append("language", document.getElementById("language").value);
+  }
   form.append("model", document.getElementById("model").value);
+  form.append("max_words", document.getElementById("maxWords").value);
 
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "/api/jobs");
@@ -67,6 +95,14 @@ function jobElement(job) {
   const name = document.createElement("div");
   name.className = "name";
   name.textContent = job.name;
+  const opts = job.options || {};
+  if (opts.translate_to) {
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = (LANG_SHORT[opts.language] || opts.language) + " → " + (LANG_SHORT[opts.translate_to] || opts.translate_to);
+    tag.title = "Translated subtitles";
+    name.append(tag);
+  }
   const meta = document.createElement("div");
   meta.className = "meta";
   const parts = [job.stage];
@@ -141,6 +177,9 @@ async function refreshJobs() {
     showMessage(e.message);
     return;
   }
+  if (data.disk_bytes !== undefined) {
+    document.getElementById("disk").textContent = "· using " + formatBytes(data.disk_bytes) + " of disk space";
+  }
   const text = JSON.stringify(data.jobs);
   if (text === lastJobsText) return;
   lastJobsText = text;
@@ -163,6 +202,12 @@ drop.ondrop = function (e) {
   upload(Array.from(e.dataTransfer.files));
 };
 
+function formatBytes(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + " GB";
+  return Math.round(n / 1e6) + " MB";
+}
+
+setMode(mode);
 loadInfo();
 refreshJobs();
 setInterval(refreshJobs, 1500);

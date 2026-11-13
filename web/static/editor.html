@@ -12,6 +12,7 @@
     <a href="/" class="button">← All videos</a>
     <img src="/static/logo.svg" alt="" class="logo">
     <h1 id="title">Editor</h1>
+    <span class="badge" id="modeBadge" style="display:none"></span>
     <span class="spacer"></span>
     <span class="badge" id="status">…</span>
   </header>
@@ -21,7 +22,10 @@
       <div id="message" class="message"></div>
       <div class="stage" id="stage">
         <video id="video" controls playsinline preload="metadata"></video>
-        <div class="overlay" id="overlay"><div class="cap" id="cap"><span class="txt" id="capText"></span></div></div>
+        <div class="overlay" id="overlay">
+          <div class="cap" id="titleCap"><span class="txt" id="titleText"></span></div>
+          <div class="cap" id="cap"><span class="txt" id="capText"></span></div>
+        </div>
       </div>
       <p class="note">The preview on the video is approximate. Use “Exact preview” to see one real frame.</p>
 
@@ -29,9 +33,37 @@
         <h2>Style</h2>
         <div class="styles" id="styles"></div>
         <div class="row">
-          <label><input type="checkbox" id="vertical"> Export as 9:16 vertical (1080×1920)</label>
+          <span class="label">Text size</span>
+          <div class="seg" id="sizes">
+            <button data-size="small">Small</button>
+            <button data-size="medium">Medium</button>
+            <button data-size="large">Large</button>
+            <button data-size="xl">XL</button>
+          </div>
         </div>
         <div class="row">
+          <label><input type="checkbox" id="vertical"> Export as 9:16 vertical (1080×1920)</label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Title text (optional)</h2>
+        <p class="note" style="margin:0 0 8px">A fixed text on the video, e.g. a hook (“Wait for the end!”), a name or “Part 1”.
+          It sits at the top (or at the bottom if the captions are at the top).</p>
+        <div class="row" style="margin-top:0">
+          <input type="text" id="titleInput" maxlength="200" placeholder="Leave empty for no title" style="flex:1; min-width:160px">
+          <select id="titleSeconds" title="How long the title is shown">
+            <option value="3">First 3 seconds</option>
+            <option value="5">First 5 seconds</option>
+            <option value="10">First 10 seconds</option>
+            <option value="0">Whole video</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Export</h2>
+        <div class="row" style="margin-top:0">
           <button id="exact">Exact preview</button>
           <button id="export" class="primary">Export video</button>
         </div>
@@ -46,19 +78,32 @@
 
     <div class="right">
       <div class="toolbar">
+        <label class="inline" title="How many words each caption line may have. Your text edits are kept.">Words per line
+          <select id="words">
+            <option value="">Auto (2–6)</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+          </select>
+        </label>
         <button id="toCyr" title="Convert all Uzbek text from Latin to Cyrillic">Lotin → Кирилл</button>
         <button id="toLat" title="Convert all Uzbek text from Cyrillic to Latin">Кирилл → Lotin</button>
-        <button id="toRu" title="Translate English captions into Russian (offline, rough: please check)">EN → RU</button>
-        <button id="toEn" title="Translate Russian captions into English (offline, rough: please check)">RU → EN</button>
+        <button id="addFirst" title="Add a new line at the very start of the video">+ Line at start</button>
         <span class="spacer"></span>
-        <button id="undo" title="Undo the last change (press again to redo)">Undo</button>
+        <button id="undo" title="Undo (Ctrl+Z). Press several times to go further back.">↶ Undo</button>
+        <button id="redo" title="Redo (Ctrl+Y)">↷ Redo</button>
         <button id="reset" title="Throw away all edits and go back to the automatic transcript">Reset</button>
         <a class="button" id="dlSrtTop">.srt</a>
+        <a class="button" id="dlOrigSrt" style="display:none" title="Subtitles in the language that is spoken">Original .srt</a>
       </div>
       <div class="lines" id="lines"></div>
       <p class="help">Click a word to jump the video there. Type to fix the text (Enter saves).
         <b>Split</b> starts a new line at the word you clicked. <b>Merge</b> joins a line with the next one.
-        The − / + buttons move a line's start or end by 0.1 s.</p>
+        <b>+</b> adds a new line after this one. The − / + buttons by the times move a line's start or end by 0.1 s.
+        <b>Ctrl+Z</b> undoes, <b>Ctrl+Y</b> redoes, as many steps as you like.</p>
     </div>
   </div>
 

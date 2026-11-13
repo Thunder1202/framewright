@@ -23,7 +23,8 @@ def _run_forever():
             if kind == "process":
                 pipeline.process_job(job_id)
             elif kind == "export":
-                pipeline.export_job(job_id, args.get("style"), args.get("vertical", False))
+                pipeline.export_job(job_id, args.get("style"), args.get("vertical", False),
+                                    size=args.get("size"), title=args.get("title"))
         except KadrError:
             pass  # already saved into job.json with a friendly message
         except Exception:
@@ -48,10 +49,10 @@ def enqueue_process(job_id):
     start()
 
 
-def enqueue_export(job_id, style, vertical):
+def enqueue_export(job_id, style, vertical, size=None, title=None):
     """Put a job in line for rendering."""
     jobs.update_job(job_id, status="exporting", stage="Waiting to render", progress=0.0, error="")
-    _tasks.put(("export", job_id, {"style": style, "vertical": vertical}))
+    _tasks.put(("export", job_id, {"style": style, "vertical": vertical, "size": size, "title": title}))
     start()
 
 

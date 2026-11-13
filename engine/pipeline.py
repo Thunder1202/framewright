@@ -44,6 +44,26 @@ def _progress_writer(job_id, jobs_dir, stage, low, high):
     return progress
 
 
+def build_lines(transcript, options):
+    """Caption lines from a transcript, using the job's "words per line" choice."""
+    return captions.split_into_lines(transcript["segments"],
+                                     max_words=captions.clean_max_words(options.get("max_words")))
+
+
+def translate_transcript_lines(lines, source, target, options):
+    """Translate caption lines for a "translated subtitles" job."""
+    from . import translate
+    if source == target:
+        return lines
+    if not translate.can_translate(source, target):
+        names = translate.LANGUAGE_NAMES
+        raise KadrError(f"The speech was recognised as {names.get(source, source)}, but translation from "
+                        f"{names.get(source, source)} to {names.get(target, target)} is not available. "
+                        "Only English to Russian and Russian to English can be translated.")
+    return translate.translate_lines(lines, source, target,
+                                     max_words=captions.clean_max_words(options.get("max_words")))
+
+
 def process_job(job_id, jobs_dir=None):
     """Run a job from uploaded video to editable captions. Returns the caption lines.
 
@@ -76,10 +96,16 @@ def process_job(job_id, jobs_dir=None):
         transcript["segments"] = dictionary.apply_to_segments(transcript["segments"])
         jobs.save_transcript(job_id, transcript, jobs_dir)
 
-        lines = captions.split_into_lines(transcript["segments"])
+        lines = build_lines(transcript, options)
         if not lines:
             raise KadrError("No speech was found in this video. If people do speak in it, "
                                  "try choosing the language by hand or a bigger model.")
+        target = options.get("translate_to")
+        if target:
+            jobs.save_json(job_id, "captions.original.json", lines, jobs_dir)
+            jobs.update_job(job_id, jobs_dir, progress=0.96,
+                            stage="Translating (the first time this downloads a model, about 200 MB)")
+            lines = translate_transcript_lines(lines, transcript["language"], target, options)
         jobs.save_captions(job_id, lines, jobs_dir)
         jobs.update_job(job_id, jobs_dir, status="ready", stage="Ready to edit", progress=1.0,
                         language=transcript["language"], model=transcript["model"], device=transcript["device"])
@@ -93,12 +119,15 @@ def process_job(job_id, jobs_dir=None):
         raise
 
 
-def export_job(job_id, style_id=None, vertical=False, jobs_dir=None):
-    """Burn the job's captions into the video. Returns {"video": path, "srt": path}."""
+def export_job(job_id, style_id=None, vertical=False, jobs_dir=None, size=None, title=None):
+    """Burn the job's captions into the video. Returns {"video": path, "srt": path}.
+
+    size: "small", "medium", "large" or "xl". title: {"text", "seconds"} or None.
+    """
     folder = jobs.job_dir(job_id, jobs_dir)
     job = jobs.load_job(job_id, jobs_dir)
     try:
-        style = styles.get_style(style_id)
+        style = styles.get_style(style_id, size)
         lines = jobs.load_captions(job_id, jobs_dir)
         if not lines:
             raise KadrError("There are no caption lines to export.")
@@ -108,9 +137,11 @@ def export_job(job_id, style_id=None, vertical=False, jobs_dir=None):
         srt_path.write_text(captions.to_srt(lines), encoding="utf-8")
         out_path = render.render_video(
             folder / job["video_file"], lines, style, folder / "output.mp4", folder, info=info,
-            vertical=vertical, progress=_progress_writer(job_id, jobs_dir, "Rendering the video", 0.0, 1.0))
+            vertical=vertical, progress=_progress_writer(job_id, jobs_dir, "Rendering the video", 0.0, 1.0),
+            title=title)
         jobs.update_job(job_id, jobs_dir, status="ready", stage="Export finished", progress=1.0,
-                        export={"style": style["id"], "vertical": bool(vertical), "time": time.time()})
+                        export={"style": style["id"], "vertical": bool(vertical), "size": style["size"],
+                                "time": time.time()})
         return {"video": str(out_path), "srt": str(srt_path)}
     except KadrError as e:
         jobs.update_job(job_id, jobs_dir, status="ready", stage="Export failed", error=str(e))
@@ -121,13 +152,16 @@ def export_job(job_id, style_id=None, vertical=False, jobs_dir=None):
         raise
 
 
-def caption_video(video_path, language="auto", style=None, model=None, vertical=False, jobs_dir=None):
+def caption_video(video_path, language="auto", style=None, model=None, vertical=False, jobs_dir=None,
+                  max_words=None, translate_to=None, size=None, title=None):
     """One call that does everything: transcribe, build captions, burn them in.
 
-    Returns {"job_id", "video", "srt", "lines"}. Perfect for a Telegram bot.
+    max_words: words per line (None = automatic). translate_to: "ru"/"en" for
+    translated subtitles. Returns {"job_id", "video", "srt", "lines"}.
     """
-    job = add_video(video_path, {"language": language, "model": model}, jobs_dir)
+    options = {"language": language, "model": model, "max_words": max_words, "translate_to": translate_to}
+    job = add_video(video_path, options, jobs_dir)
     lines = process_job(job["id"], jobs_dir)
-    result = export_job(job["id"], style, vertical, jobs_dir)
+    result = export_job(job["id"], style, vertical, jobs_dir, size=size, title=title)
     result.update(job_id=job["id"], lines=lines)
     return result

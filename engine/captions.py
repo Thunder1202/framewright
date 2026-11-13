@@ -47,12 +47,15 @@ def _split_segment(words, max_words, max_chars, max_pause):
     return groups
 
 
-def _fix_orphans(groups, max_words, max_chars):
+def _fix_orphans(groups, max_words, max_chars, strict=False):
     """Remove one-word lines where possible.
 
     The last line of a segment must never be a single leftover word, so there
     we always repair. In the middle we only repair when the limits allow it.
+    strict: the user chose an exact number of words, so never go over it.
     """
+    if max_words <= 1:
+        return groups
     i = 1
     while i < len(groups):
         if len(groups[i]) != 1:
@@ -68,7 +71,7 @@ def _fix_orphans(groups, max_words, max_chars):
             groups[i] = [prev[-1]] + lone           # borrow one word from the line above
             groups[i - 1] = prev[:-1]
             i += 1
-        elif is_last:
+        elif is_last and not strict:
             groups[i - 1] = prev + lone             # last resort: join even if a bit long
             del groups[i]
         else:
@@ -76,15 +79,68 @@ def _fix_orphans(groups, max_words, max_chars):
     return groups
 
 
-def split_into_lines(segments, max_words=MAX_WORDS, max_chars=MAX_CHARS, max_pause=MAX_PAUSE):
-    """Turn transcript segments into caption lines of about 2-6 words."""
+WORDS_CHOICES = (1, 2, 3, 4, 5, 6)   # what the user can pick in "Words per line"
+
+
+def clean_max_words(value):
+    """The user's "words per line" choice as an int, or None for automatic (2-6)."""
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        return None
+    return value if value in WORDS_CHOICES else None
+
+
+def split_into_lines(segments, max_words=None, max_chars=MAX_CHARS, max_pause=MAX_PAUSE):
+    """Turn transcript segments into caption lines.
+
+    max_words None: automatic, about 2-6 words and at most 32 characters.
+    max_words N: at most N words per line, whatever their length (long
+    lines are broken into two rows or shrunk when the video is drawn).
+    """
+    strict = max_words is not None
+    if strict:
+        max_chars = 10_000
+    else:
+        max_words = MAX_WORDS
     lines = []
     for segment in segments:
         words = [dict(w) for w in segment.get("words", []) if w.get("word", "").strip()]
         if not words:
             continue
-        groups = _fix_orphans(_split_segment(words, max_words, max_chars, max_pause), max_words, max_chars)
+        groups = _split_segment(words, max_words, max_chars, max_pause)
+        groups = _fix_orphans(groups, max_words, max_chars, strict)
         lines.extend(_line_from_words(g) for g in groups)
+    return lines
+
+
+def reflow(lines, max_words=None):
+    """Re-cut existing lines into new ones with a different number of words.
+
+    Uses the words as they are now, so text edits are kept. Pauses and
+    sentence ends still start a new line.
+    """
+    words = [dict(w) for line in lines for w in line.get("words", [])]
+    return split_into_lines([{"words": words}], max_words=max_words)
+
+
+def insert_line(lines, index, text="New line"):
+    """Add a new line after line `index` (index -1 = at the very start).
+
+    It fills the gap to the next line, or takes 1.5 seconds if there is no gap.
+    """
+    lines = copy.deepcopy(lines)
+    after = lines[index]["end"] if 0 <= index < len(lines) else 0.0
+    nxt = lines[index + 1]["start"] if index + 1 < len(lines) else None
+    start = after
+    if nxt is None or nxt - after < 0.4:
+        end = start + 1.5
+    else:
+        end = min(nxt, start + 3.0)
+    words = spread_words(text, start, end)
+    line = {"start": round(start, 3), "end": round(end, 3), "text": " ".join(w["word"] for w in words), "words": words}
+    lines.insert(index + 1, line)
+    lines.sort(key=lambda l: l["start"])
     return lines
 
 
