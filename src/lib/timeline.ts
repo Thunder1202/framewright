@@ -66,6 +66,12 @@ export function newClip(partial: Partial<Clip> & Pick<Clip, 'kind' | 'name' | 's
 
 export const hasSource = (c: Clip) => c.kind === 'video' || c.kind === 'audio' || c.kind === 'compound';
 
+/** Move a caption's word times when the clip's own start moves (split, trim). */
+export function shiftWords(clip: Clip, delta: number): void {
+  if (!clip.text?.words) return;
+  clip.text = { ...clip.text, words: clip.text.words.map((w) => ({ ...w, s: w.s + delta, e: w.e + delta })) };
+}
+
 /** Give everything inside a compound clip new ids, so a copy never shares players with the original. */
 export function freshIds(clip: Clip): Clip {
   if (!clip.inner) return clip;
@@ -197,6 +203,7 @@ export function splitClip(clip: Clip, t: number, fps: number): [Clip, Clip] | nu
   }
   // key times count from the clip's start, so the second half's move back with it
   shiftKeys(b, clip.start - t);
+  shiftWords(b, clip.start - t);
   freshIds(b);
   return [a, b];
 }
@@ -214,6 +221,7 @@ export function trimStart(clip: Clip, newStart: number, lowerBound: number, fps:
     offset: hasSource(clip) && !clip.reversed ? Math.max(0, clip.offset + delta * clip.speed) : clip.offset,
   };
   shiftKeys(out, -delta);
+  shiftWords(out, -delta);
   return out;
 }
 

@@ -2,6 +2,13 @@
 
 A local-first video editor for Windows (also runs in Chrome or Edge). Personal use, no accounts, nothing uploaded. Modelled on the editing loop of a well-known mobile and desktop editor, but written clean-room: its own name, palette, copy and code.
 
+This folder holds two programs that work together:
+
+- **Framewright** (everything outside `kadr/`): the editor. TypeScript, React, Electron.
+- **Kadr** (`kadr/`): the captions engine. Python. It listens to a video and writes word-timed captions in Uzbek, Russian or English, converts Uzbek between alphabets, translates English and Russian, and can burn styled captions in by itself. Framewright starts it in the background when captions are asked for and talks to it over `http://127.0.0.1:8000`. It also still runs on its own (`kadr/StartKadr.bat`). Its own docs: `kadr/README.md`, `kadr/GUIDE.md`, `kadr/DECISIONS.md`.
+
+Everything lives in `the Framewright folder` on purpose, to keep the C drive free: the code, the built app, Kadr's Python environment and speech models (`kadr/.venv`, `kadr/models`), and the desktop app's saved projects (`data/`). Do not move any of it back to C.
+
 The owner is not a programmer. Do the whole job yourself: make the change, test it, rebuild the installer, and report in plain words what works and what was not checked. Do not hand back steps for the owner to carry out unless only they can do it.
 
 ## Commands
@@ -12,6 +19,8 @@ The owner is not a programmer. Do the whole job yourself: make the change, test 
 | Unit tests | `npx vitest run` |
 | Dev server (port 5173) | `npm run dev` (in Claude Code: the `editor` preview from `.claude/launch.json`) |
 | Desktop app from the last build | `npm run app` |
+| Kadr's tests | `kadr\.venv\Scripts\python.exe -m pytest kadr\tests -q` (run from `kadr/`) |
+| Kadr on its own | `kadr\StartKadr.bat`, or `kadr\.venv\Scripts\python.exe run.py` from `kadr/` |
 | Build site + Windows installer | `npm run dist` → `release/Framewright Setup <version>.exe` and `release/win-unpacked/Framewright.exe` |
 
 The desktop shortcut "Framewright" points at `release/win-unpacked/Framewright.exe`, so `npm run dist` is what updates the app the owner opens. Close the app before building or the build cannot overwrite it.
@@ -29,6 +38,9 @@ src/
     keyframes.ts        animated position / scale / rotation / opacity
     ramp.ts             speed shapes and reverse: sourcePos(clip, local), rateAt
     compound.ts         groups (a timeline inside a clip): groupClips, ungroupClip, innerTime
+    captions.ts         captions from speech: placing heard lines on the timeline, word highlight, fitting, SRT
+    kadr.ts             the client for the Kadr engine (start it, transcribe, translate)
+    translit.ts         Uzbek Latin <-> Cyrillic; must match kadr/engine/translit.py (cases in translit.cases.ts)
     stabilise.ts        shake measurement and smoothing
     chroma.ts           green screen
     subtitles.ts        SRT / WebVTT parsing
@@ -39,7 +51,10 @@ src/
     export.ts           WebCodecs + mp4-muxer video export, offline audio mix, WAV, stills
   components/         React UI: Editor, LeftPanel, Preview, Inspector, Timeline, Dialogs, ui
   styles.css          plain CSS; all colours and sizes are tokens on :root
-electron/main.cjs     desktop wrapper; serves dist/ over app://
+electron/main.cjs     desktop wrapper; serves dist/ over app://, keeps saved projects in data/, starts and stops Kadr
+electron/preload.cjs  the two calls the editor may make to the wrapper (window.framewright)
+kadr/                 the captions engine (Python): engine/ does the work, web/ is its own page and API
+data/                 the desktop app's saved projects and imported media (not in git)
 replica/              specs and history: recon.md, architecture.md, design/, features.csv, build-log.md
 ```
 
@@ -51,6 +66,9 @@ replica/              specs and history: recon.md, architecture.md, design/, fea
 - **One renderer.** Anything visual goes in `compose.ts` so preview and export cannot drift apart. Anything audible needs both `player.ts` (preview) and `mixAudio` in `export.ts`.
 - **Time inside a clip** always goes through `sourcePos` / `sourceTime` (and `innerTime` for groups). Do not compute `offset + local * speed` by hand.
 - **Edits go through `actions.ts`** using `commit` (one undo step) or `checkpoint` + `mutate` (dragging).
+- **Never commit** `data/`, `kadr/jobs/`, `kadr/models/`, `kadr/.venv/`, `release/`: they are the owner's videos, multi-gigabyte models and builds. The `.gitignore` files already cover them.
+- **Kadr changes stay additive.** Kadr must keep working on its own; do not remove or rename what its page uses.
+- **Two converters, one behaviour.** If `kadr/engine/translit.py` changes, change `src/lib/translit.ts` the same way and regenerate `src/lib/translit.cases.ts` from Kadr's tests.
 - **Keep the Guide true.** When a feature is added, moved or renamed, update its entry in `src/guide.ts`.
 - **Plain words in the UI.** Short labels, no jargon, say what a button does in its tooltip.
 
@@ -75,11 +93,16 @@ Rendering bugs do not show up in unit tests. In the dev server page, drive the a
 - Long checks: start them as a promise that stores its result on `window`, then poll. A single script call times out after about 45 seconds.
 - Do not call anything that triggers a file download.
 
+## Git and GitHub
+
+Private repository: `origin` on GitHub (see `git remote -v`). Kadr's earlier history is merged in under `kadr/`. Commit after each finished piece of work and push; never make the repository public or commit the folders listed under Rules.
+
 ## Known limits (see `replica/build-log.md` for the full list)
 
 - Reversed clips are silent in the preview (the export has the sound).
 - Splitting a speed-shaped clip flattens each half to a steady speed.
 - Stabilising handles sliding shake only, up to 120 s of a clip.
+- Captions from speech need the desktop app opened from this folder (or Kadr started by hand), handle videos up to 5 minutes, and only video clips, not sound-only clips. Editing a caption's words switches its word highlighting off.
 - A group cannot be opened and edited in place: break it apart, edit, group again. Breaking apart drops settings that were on the group itself.
 - Blend modes on a clip inside a group only blend with the other clips in that group.
 - Pointer drags on the timeline and the on-canvas handles have never been tested by automation.
@@ -87,4 +110,4 @@ Rendering bugs do not show up in unit tests. In the dev server page, drive the a
 
 ## Environment notes
 
-Windows, Git Bash and PowerShell, no Python, not a git repository. Shell heredocs mangle backslashes and backticks here: write scripts to a file with the editor tools and run them with `node`.
+Windows, Git Bash and PowerShell. The only Python is Kadr's own, at `kadr\.venv\Scripts\python.exe` (its launchers such as `pip.exe` do not work since the move from C; use `python.exe -m pip`). Shell heredocs mangle backslashes and backticks here: write scripts to a file with the editor tools and run them with `node`.

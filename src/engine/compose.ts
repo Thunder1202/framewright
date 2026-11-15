@@ -5,6 +5,7 @@ import { resolveClip } from '../lib/keyframes';
 import { sourcePos } from '../lib/ramp';
 import { clamp, clipEnd, EPS } from '../lib/timeline';
 import { innerTime, MAX_DEPTH, subProject } from '../lib/compound';
+import { spokenWord, wordsFit } from '../lib/captions';
 
 /** Where the compositor gets pixels from. The preview and the exporter each supply their own. */
 export interface Sources {
@@ -395,7 +396,7 @@ function drawLayer(ctx: CanvasRenderingContext2D, p: Project, layer: Layer, t: n
 
   if (clip.kind === 'text' && clip.text) {
     if (clip.blend && clip.blend !== 'normal') ctx.globalCompositeOperation = BLEND[clip.blend];
-    drawText(ctx, clip.text, H, clip.scale);
+    drawText(ctx, clip.text, H, clip.scale, t - clip.start);
   } else if (clip.kind === 'video' || clip.kind === 'image') {
     const el = clip.kind === 'video' ? src.video(clip) : clip.assetId ? src.image(clip.assetId) : null;
     const size = clipSize(p, clip, W, H, src);
@@ -418,7 +419,7 @@ function drawLayer(ctx: CanvasRenderingContext2D, p: Project, layer: Layer, t: n
   ctx.restore();
 }
 
-function drawText(ctx: CanvasRenderingContext2D, text: TextStyle, H: number, scale: number) {
+function drawText(ctx: CanvasRenderingContext2D, text: TextStyle, H: number, scale: number, local: number) {
   const l = layoutText(ctx, text, H, scale);
   if (text.backgroundOn) {
     ctx.fillStyle = text.background;
@@ -437,15 +438,34 @@ function drawText(ctx: CanvasRenderingContext2D, text: TextStyle, H: number, sca
     ctx.shadowBlur = l.fontPx * 0.14;
     ctx.shadowOffsetY = l.fontPx * 0.05;
   }
+  // captions made from speech light up the word being spoken
+  const lit = text.highlight && wordsFit(text.content, text.words) ? spokenWord(text.words, local) : -1;
+  let wordAt = 0;
   l.lines.forEach((line, i) => {
     const y = -l.h / 2 + l.lineH * (i + 0.5);
     if (text.strokeWidth > 0) {
       ctx.strokeStyle = text.stroke;
       ctx.lineWidth = (l.fontPx * text.strokeWidth) / 50;
-      ctx.strokeText(line, x, y);
     }
-    ctx.fillStyle = text.color;
-    ctx.fillText(line, x, y);
+    const tokens = line.split(/\s+/).filter(Boolean);
+    if (lit < wordAt || lit >= wordAt + tokens.length) {
+      if (text.strokeWidth > 0) ctx.strokeText(line, x, y);
+      ctx.fillStyle = text.color;
+      ctx.fillText(line, x, y);
+    } else {
+      // word by word, so one of them can take the highlight colour
+      const lineW = ctx.measureText(tokens.join(' ')).width;
+      let wx = text.align === 'left' ? -l.w / 2 : text.align === 'right' ? l.w / 2 - lineW : -lineW / 2;
+      ctx.textAlign = 'left';
+      tokens.forEach((tok, k) => {
+        if (text.strokeWidth > 0) ctx.strokeText(tok, wx, y);
+        ctx.fillStyle = wordAt + k === lit ? text.highlight! : text.color;
+        ctx.fillText(tok, wx, y);
+        wx += ctx.measureText(tok + ' ').width;
+      });
+      ctx.textAlign = text.align;
+    }
+    wordAt += tokens.length;
   });
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;

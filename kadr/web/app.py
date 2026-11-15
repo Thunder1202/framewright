@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import List
 
 from fastapi import Body, FastAPI, File, Form, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -19,6 +20,12 @@ WEB_DIR = Path(__file__).resolve().parent
 app = FastAPI(title="Kadr", docs_url=None, redoc_url=None)
 app.mount("/static", StaticFiles(directory=WEB_DIR / "static"), name="static")
 app.mount("/fonts", StaticFiles(directory=config.FONTS_DIR), name="fonts")
+
+# The Framewright editor (same computer) asks Kadr for captions. Only its two
+# addresses may call in from another page; nothing on the network can reach us anyway.
+app.add_middleware(CORSMiddleware,
+                   allow_origins=["app://editor", "http://localhost:5173", "http://127.0.0.1:5173"],
+                   allow_methods=["*"], allow_headers=["*"])
 
 _preview_lock = threading.Lock()   # one preview picture at a time
 
@@ -108,6 +115,19 @@ def api_info():
         "words_choices": list(captions.WORDS_CHOICES),
         "translation_pairs": [list(p) for p in translate.available_pairs()],
     }
+
+
+@app.post("/api/translate")
+def api_translate(payload: dict = Body(...)):
+    """Translate a list of texts (English <-> Russian). Used by the Framewright editor."""
+    source, target = payload.get("source"), payload.get("target")
+    texts = payload.get("texts")
+    if not translate.can_translate(source, target):
+        raise KadrError("This translation is not available. Only English → Russian and "
+                        "Russian → English can be translated offline.")
+    if not isinstance(texts, list) or len(texts) > 5000:
+        raise KadrError("Send a list of at most 5000 texts.")
+    return {"texts": translate.translate_texts([str(t) for t in texts], source, target)}
 
 
 # ---------- jobs ----------

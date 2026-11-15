@@ -93,3 +93,21 @@ Clicked and confirmed working: Group, Break apart, the keyframe diamond plus typ
 Design refresh (styles.css design layer, tokens updated): slightly blue-tinted darker greys with more separation between layers; orange gradient on primary buttons, the play button and the playhead; segmented tab pills in the settings panel; section headings with rules; rounded timeline clips with a light sheen, a glow when selected and grip marks on the trim edges; framed preview with a soft spotlight; blurred backdrop and gentle pop-in for dialogs; pill notices; thin dark scrollbars; home screen with a soft gradient, cards that lift on hover and a "New project" tile. Animations respect the reduced-motion setting.
 
 Not checked: the look inside the packaged desktop app (rebuild was blocked because the app was open), dialog animations (they do not run while the test browser is hidden).
+
+## Sixth pass, 2026-11-15: fused with Kadr, moved to drive D, put on GitHub
+
+Kadr (a separate Python program for automatic captions, found unfinished beside this one) now lives in `kadr/` with its git history, and its features are reachable from the editor. Nothing of Kadr's was removed: its own page, styles, batch mode and tests are all still there.
+
+| item | status | checked how |
+| --- | --- | --- |
+| Whole program on the Framewright folder | done | copied with robocopy: 8,998 + 11,561 + 27 files, 0 failed; Kadr's 336 tests pass from D using the moved Python environment and the moved speech models |
+| Speech models moved out of the user-profile Hugging Face cache (4.3 GB) into kadr/models/hf | done | a caption run from D loaded them without downloading anything |
+| Captions from speech in the editor | done | in the browser, with Kadr running from D: a 21 s Russian sample became 9 correct captions in 29 s, each with word times |
+| Spoken word lights up | done | rendered frames with the video hidden: the yellow word was in row one at the first word and row two at the last |
+| Captions fit the picture | done | found broken by that same test (a line ran off both edges of a vertical video); now long lines break into two balanced rows, text spans 95-446 of 540 pixels |
+| Uzbek Latin / Cyrillic | done | the TypeScript port gives the same answer as Kadr on all of Kadr's own test cases; converted a title both ways in the app |
+| Translate EN / RU | done | translated the 9 captions RU to EN in 2 s through Kadr; undo restored them |
+| Save as .srt | done | unit test: written file reads back the same. The button itself was not pressed (it would start a download) |
+| Desktop app keeps projects in data/ and starts Kadr itself | see below | |
+
+75+ checks: 70 editor unit tests and 339 Kadr tests pass.

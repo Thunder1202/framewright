@@ -3,6 +3,8 @@ import sys
 import threading
 import webbrowser
 
+import engine  # noqa: F401  (first, so downloaded models go to models/hf inside the project)
+
 
 def check_python():
     """Stop early with a clear message on a Python that is too old."""

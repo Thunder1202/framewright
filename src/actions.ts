@@ -10,6 +10,10 @@ import { isActive, sourceTime } from './engine/compose';
 import { exportStill } from './engine/export';
 import { Cue, parseSubtitles } from './lib/subtitles';
 import { assetsIn, groupClips, ungroupClip } from './lib/compound';
+import { captionBlocker, fitLines, mapCaptionText, piecesForClip, toSrt } from './lib/captions';
+import { convertScript, Script } from './lib/translit';
+import * as kadr from './lib/kadr';
+import { mediaBlob } from './lib/media';
 
 const S = () => useStore.getState();
 const even = (n: number) => Math.max(2, Math.round(n / 2) * 2);
@@ -656,6 +660,152 @@ export async function importSubtitles(file: File) {
     }
   });
   S().notify(`Added ${cues.length} caption${cues.length > 1 ? 's' : ''} on a new layer`);
+}
+
+// ---------- captions from speech (the kadr engine) ----------
+
+/** The look of captions made from speech: bold, outlined, low on the screen, spoken word in yellow. */
+const SPEECH_CAPTION: Partial<TextStyle> = { size: 6, bold: true, strokeWidth: 10, stroke: '#000000', shadow: true, highlight: '#ffd60a' };
+
+/** Listen to the selected video clip and put word-timed captions above it. */
+export async function autoCaptions(language: kadr.SpokenLanguage) {
+  const p0 = S().project;
+  if (!p0) return;
+  const sel = selectedClips(p0);
+  const target = sel.length === 1 ? sel[0].clip : null;
+  const blocker = target ? captionBlocker(target) : 'Select one video clip to listen to';
+  if (!target || blocker) {
+    S().notify(blocker ?? 'Select one video clip to listen to', 'error');
+    return;
+  }
+  const blob = mediaBlob(target.assetId!);
+  const asset = p0.assets.find((a) => a.id === target.assetId);
+  if (!blob || !asset) {
+    S().notify('The source file for that clip is missing', 'error');
+    return;
+  }
+  useStore.setState({ busy: 'Starting the captions engine' });
+  try {
+    const lines = await kadr.transcribe(blob, asset.name, language, (stage, ratio) =>
+      useStore.setState({ busy: `Captions: ${stage}${ratio > 0 ? ` (${Math.round(ratio * 100)}%)` : ''}` }),
+    );
+    // the clip may have been moved or trimmed while we were listening
+    const now = S().project && T.findClip(S().project!, target.id)?.clip;
+    if (!now) {
+      S().notify('The clip was removed before its captions were ready', 'error');
+      return;
+    }
+    const pieces = piecesForClip(lines, now, S().project!.fps);
+    if (!pieces.length) {
+      S().notify('No speech was heard in the part of the video this clip shows');
+      return;
+    }
+    // keep every caption inside the picture: two rows when a line is long, smaller only if it must be
+    const proj = S().project!;
+    const style = { ...DEFAULT_TEXT, ...SPEECH_CAPTION };
+    const tall = proj.height > proj.width;
+    const size = tall ? 4.2 : style.size;
+    const ruler = document.createElement('canvas').getContext('2d')!;
+    ruler.font = `${style.bold ? 700 : 400} ${(size / 100) * proj.height}px ${style.font}`;
+    const fit = fitLines(pieces.map((x) => x.text), (s) => ruler.measureText(s).width, proj.width * 0.84);
+    const made: string[] = [];
+    S().commit((p) => {
+      const track = addTrackTo(p, 'visual');
+      pieces.forEach((piece, i) => {
+        const clip = T.newClip({
+          kind: 'text',
+          name: 'Caption',
+          start: piece.start,
+          duration: piece.duration,
+          y: 0.32,
+          text: { ...style, size: size * fit.shrink, content: fit.texts[i], words: piece.words.length ? piece.words : undefined },
+        });
+        track.clips.push(clip);
+        made.push(clip.id);
+      });
+    });
+    S().select(made);
+    S().notify(`Added ${pieces.length} caption${pieces.length > 1 ? 's' : ''} on a new layer. Read them through: names and numbers are often misheard.`);
+  } catch (e) {
+    S().notify((e as Error).message, 'error');
+  } finally {
+    useStore.setState({ busy: null });
+  }
+}
+
+/** The captions an action applies to: the selected text clips, or every text clip when none is selected. */
+function captionTargets(p: Project): Clip[] {
+  const texts = p.tracks.flatMap((t) => (t.locked ? [] : t.clips.filter((c) => c.kind === 'text' && c.text)));
+  const sel = new Set(S().selection);
+  const picked = texts.filter((c) => sel.has(c.id));
+  return picked.length ? picked : texts;
+}
+
+/** Uzbek Latin <-> Cyrillic for captions and titles. */
+export function convertCaptions(direction: Script) {
+  const p0 = S().project;
+  if (!p0) return;
+  const ids = captionTargets(p0).map((c) => c.id);
+  if (!ids.length) {
+    S().notify('There is no text on the timeline to convert');
+    return;
+  }
+  editClips(ids, (c) => mapCaptionText(c, (s) => convertScript(s, direction)));
+  S().notify(`Converted ${ids.length} text clip${ids.length > 1 ? 's' : ''}. Ctrl+Z brings the original back.`);
+}
+
+/** English <-> Russian for captions, offline, through the captions engine. */
+export async function translateCaptions(source: 'en' | 'ru', target: 'en' | 'ru') {
+  const p0 = S().project;
+  if (!p0) return;
+  const clips = captionTargets(p0);
+  if (!clips.length) {
+    S().notify('There is no text on the timeline to translate');
+    return;
+  }
+  useStore.setState({ busy: 'Translating (the first time downloads a 200 MB language model)' });
+  try {
+    const out = await kadr.translate(clips.map((c) => c.text!.content), source, target);
+    const byId = new Map(clips.map((c, i) => [c.id, out[i]]));
+    editClips([...byId.keys()], (c) => {
+      const next = byId.get(c.id);
+      if (!c.text || !next) return;
+      // a translated line has different words, so the old word times no longer apply
+      c.text = { ...c.text, content: next, words: undefined };
+    });
+    S().notify(`Translated ${clips.length} text clip${clips.length > 1 ? 's' : ''}. Machine translation is rough: read every line. Ctrl+Z brings the original back.`);
+  } catch (e) {
+    S().notify((e as Error).message, 'error');
+  } finally {
+    useStore.setState({ busy: null });
+  }
+}
+
+/** Save every text clip on the timeline as an .srt subtitle file. */
+export function exportSrt() {
+  const p = S().project;
+  if (!p) return;
+  const cues = p.tracks
+    .flatMap((t) => (t.hidden ? [] : t.clips))
+    .filter((c) => c.kind === 'text' && c.text?.content.trim())
+    .map((c) => ({ start: c.start, end: T.clipEnd(c), text: c.text!.content }));
+  if (!cues.length) {
+    S().notify('There is no text on the timeline to save');
+    return;
+  }
+  downloadBlob(new Blob([toSrt(cues)], { type: 'application/x-subrip' }), `${p.name || 'captions'}.srt`);
+}
+
+/** Open the captions engine's own page in the browser. */
+export async function openKadr() {
+  useStore.setState({ busy: 'Starting the captions engine' });
+  try {
+    await kadr.openKadrPage();
+  } catch (e) {
+    S().notify((e as Error).message, 'error');
+  } finally {
+    useStore.setState({ busy: null });
+  }
 }
 
 // ---------- keyframes ----------

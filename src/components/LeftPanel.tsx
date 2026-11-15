@@ -1,7 +1,21 @@
 import { useRef, useState } from 'react';
 import { LeftTab, useStore } from '../store';
 import { Asset, TextStyle, TransitionKind } from '../types';
-import { addAssetToTimeline, addText, applyFilter, applyTransition, importFiles, importSubtitles, removeAsset } from '../actions';
+import {
+  addAssetToTimeline,
+  addText,
+  applyFilter,
+  applyTransition,
+  autoCaptions,
+  convertCaptions,
+  exportSrt,
+  importFiles,
+  importSubtitles,
+  openKadr,
+  removeAsset,
+  translateCaptions,
+} from '../actions';
+import { SpokenLanguage } from '../lib/kadr';
 import { FILTERS, swatchCss } from '../lib/filters';
 import { encodeWav, importFile } from '../lib/media';
 import { player } from '../engine/player';
@@ -187,8 +201,47 @@ const TEXT_PRESETS: { name: string; sample: string; style: Partial<TextStyle> }[
 
 function TextTab() {
   const ref = useRef<HTMLInputElement>(null);
+  const [language, setLanguage] = useState<SpokenLanguage>('auto');
   return (
     <>
+      <h4 className="panel-title">Captions from speech</h4>
+      <label className="row">
+        <span>Spoken</span>
+        <select className="select" value={language} onChange={(e) => setLanguage(e.target.value as SpokenLanguage)} aria-label="Language spoken in the video">
+          <option value="auto">Auto (mixed)</option>
+          <option value="uz">Uzbek</option>
+          <option value="ru">Russian</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+      <button className="btn primary block" onClick={() => void autoCaptions(language)} title="Listens to the selected video clip and writes its captions, with a time for every word">
+        <Icon name="captions" /> Write captions
+      </button>
+      <p className="hint">Select a video clip first. Up to 5 minutes of video. The first time, a speech model is downloaded.</p>
+      <div className="btn-row">
+        <button className="btn secondary small" onClick={() => convertCaptions('to_cyrillic')} title="Uzbek: convert the text to Cyrillic">
+          Lotin → Кирилл
+        </button>
+        <button className="btn secondary small" onClick={() => convertCaptions('to_latin')} title="Uzbek: convert the text to Latin">
+          Кирилл → Lotin
+        </button>
+        <button className="btn secondary small" onClick={() => void translateCaptions('en', 'ru')} title="Translate the text from English to Russian, offline">
+          EN → RU
+        </button>
+        <button className="btn secondary small" onClick={() => void translateCaptions('ru', 'en')} title="Translate the text from Russian to English, offline">
+          RU → EN
+        </button>
+      </div>
+      <p className="hint">These change the selected text clips, or all text when none is selected.</p>
+      <div className="btn-row">
+        <button className="btn secondary small" onClick={exportSrt} title="Save every text clip as an .srt subtitle file">
+          Save as .srt
+        </button>
+        <button className="btn secondary small" onClick={() => void openKadr()} title="Open the captions engine's own page: batch captioning and its burned-in caption styles">
+          Open Kadr
+        </button>
+      </div>
+      <h4 className="panel-title">Subtitles file and titles</h4>
       <button className="btn secondary block" onClick={() => ref.current?.click()} title="Each line of an .srt or .vtt file becomes a caption at its own time">
         <Icon name="captions" /> Import subtitles
       </button>

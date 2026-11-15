@@ -74,3 +74,29 @@ def test_known_hallucinations_are_recognised():
     assert transcribe.is_known_hallucination("o‘zbekistonda o‘tmoqda.")
     assert not transcribe.is_known_hallucination("o‘zbek tilida gaplashamiz")
     assert not transcribe.is_known_hallucination("legs up, looks simple")
+
+
+def test_models_are_kept_inside_the_project():
+    """Speech models download to models/hf in the project, not the home folder."""
+    import os
+    import engine  # noqa: F401
+    from engine import config
+    assert os.environ["HF_HUB_CACHE"].startswith(str(config.ROOT))
+
+
+def test_translate_endpoint_refuses_unknown_pairs():
+    from fastapi.testclient import TestClient
+    from web.app import app
+    client = TestClient(app)
+    r = client.post("/api/translate", json={"source": "uz", "target": "ru", "texts": ["salom"]})
+    assert r.status_code == 400 and "not available" in r.json()["error"]
+
+
+def test_the_editor_may_call_in_but_other_pages_may_not():
+    from fastapi.testclient import TestClient
+    from web.app import app
+    client = TestClient(app)
+    ok = client.get("/api/jobs", headers={"Origin": "app://editor"})
+    assert ok.headers.get("access-control-allow-origin") == "app://editor"
+    other = client.get("/api/jobs", headers={"Origin": "https://example.com"})
+    assert "access-control-allow-origin" not in other.headers

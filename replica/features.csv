@@ -53,3 +53,7 @@ Auto captions from speech,text,skip,yes,skip,server-side model; possible locally
 AI background removal and avatars,effects,skip,yes,skip,server-side models
 Text to speech voices,audio,skip,yes,skip,licensed voices
 Export sound only (WAV),export,could,no,yes,not in the original map; added here
+Captions from speech (Uzbek / Russian / English),text,could,yes,yes,through the kadr engine; spoken word lights up; videos up to 5 minutes
+Uzbek Latin and Cyrillic conversion,text,could,yes,yes,same rules as the kadr engine
+Translate captions (English and Russian),text,could,yes,yes,offline through the kadr engine; rough
+Save captions as .srt,text,could,yes,yes,every text clip on the timeline

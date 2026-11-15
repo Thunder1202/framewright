@@ -1493,6 +1493,26 @@ kbd {
    this block only refines how it looks. Tokens only.
    ===================================================================== */
 
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  font-size: var(--fs-xs);
+  line-height: 14px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.panel-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.panel .row .select {
+  width: 150px;
+}
+
 /* scrollbars */
 * {
   scrollbar-width: thin;

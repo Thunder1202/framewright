@@ -23,8 +23,19 @@ export interface Adjust {
   blur: number; // 0..100
 }
 
+/** One word of a caption and when it is spoken, in seconds from the clip's start. */
+export interface TimedWord {
+  w: string;
+  s: number;
+  e: number;
+}
+
 export interface TextStyle {
   content: string;
+  /** captions made from speech: a time for every word, so the spoken one can light up */
+  words?: TimedWord[];
+  /** colour of the word being spoken; no highlighting when empty */
+  highlight?: string;
   font: string;
   /** percent of canvas height */
   size: number;
