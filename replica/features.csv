@@ -1,0 +1,55 @@
+feature,area,priority,original,clone,notes
+Create and name a project,projects,must,yes,yes,
+Projects list with reopen and delete,projects,must,yes,yes,
+Autosave and restore a project exactly,projects,must,yes,yes,stored locally in the browser
+Import video image and audio by picker or drag and drop,media,must,yes,yes,
+Media thumbnails with duration,media,must,yes,yes,
+Add media to the timeline by click or drag,timeline,must,yes,yes,
+Multiple video tracks layered,timeline,must,yes,yes,
+Separate audio tracks,timeline,must,yes,yes,
+Move clips along and between tracks,timeline,must,yes,yes,
+Trim clip start and end by dragging edges,timeline,must,yes,yes,
+Split at playhead,timeline,must,yes,yes,
+Delete and ripple delete,timeline,must,yes,yes,
+Snapping to clips and playhead,timeline,must,yes,yes,
+Timeline zoom and scroll,timeline,must,yes,yes,
+Undo and redo,timeline,must,yes,yes,
+Preview with play pause and scrub,preview,must,yes,yes,
+Canvas aspect ratio presets (16:9 9:16 1:1 4:5),preview,must,yes,yes,
+Move scale and rotate a clip on the canvas,preview,must,yes,yes,
+Text clips with font size colour stroke and background,text,must,yes,yes,
+Filters (preset looks),effects,must,yes,yes,
+Adjustments (brightness contrast saturation and more),effects,must,yes,yes,
+Clip volume mute and fades,audio,must,yes,yes,
+Clip speed change,speed,must,yes,yes,
+Export to a video file with resolution and frame rate choice,export,must,yes,yes,
+Transitions between adjacent clips,effects,should,yes,yes,
+Clip opacity and blend,effects,should,yes,yes,
+In and out animations for clips and text,animation,should,yes,yes,
+Keyframes on transform and opacity,animation,should,yes,yes,position scale rotation and opacity; smooth easing only
+Audio waveforms on the timeline,audio,should,yes,yes,
+Record a voiceover,audio,should,yes,yes,
+Detach audio from a video clip,audio,should,yes,yes,
+Freeze frame,timeline,should,yes,yes,
+Crop a clip,preview,should,yes,yes,edge sliders in the inspector; no on-canvas crop handles
+Duplicate copy and paste clips,timeline,should,yes,yes,
+Track mute lock and hide,timeline,should,yes,yes,
+Keyboard shortcuts with a cheat sheet,shell,should,yes,yes,
+Resizable panes,shell,should,yes,yes,
+Export a still frame,export,should,yes,yes,
+Speed curves (ramping),speed,could,yes,partial,four preset shapes; no hand-drawn curve
+Reverse a clip,speed,could,yes,partial,picture and exported sound are reversed; preview sound is silent
+Chroma key (green screen),effects,could,yes,yes,
+Masks,effects,could,yes,partial,oval and rectangle with soft edge and invert; no freehand or animated masks
+Stabilisation,effects,could,yes,partial,removes sliding shake only; not rotation or rolling shutter
+Markers on the timeline,timeline,could,yes,yes,unnamed; Shift+M and [ ]
+Compound clips,timeline,could,yes,partial,group and break apart; a group takes speed reverse effects and keyframes; cannot be opened and edited in place
+Subtitle file import (SRT),text,could,yes,yes,SRT and WebVTT
+Licensed music and sound effect library,audio,skip,yes,skip,licensed catalogue; bring your own files
+Stock video stickers and templates,media,skip,yes,skip,their content library and creator marketplace
+Cloud storage and team spaces,projects,skip,yes,skip,single user and local only by design
+Publish directly to social platforms,export,skip,yes,skip,needs partner API access
+Auto captions from speech,text,skip,yes,skip,server-side model; possible locally later
+AI background removal and avatars,effects,skip,yes,skip,server-side models
+Text to speech voices,audio,skip,yes,skip,licensed voices
+Export sound only (WAV),export,could,no,yes,not in the original map; added here

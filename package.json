@@ -1,0 +1,53 @@
+{
+  "name": "framewright",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Local-first video editor",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "app": "vite build && electron .",
+    "dist": "vite build && electron-builder --win nsis"
+  },
+  "dependencies": {
+    "idb-keyval": "^6.3.0",
+    "mp4-muxer": "^5.2.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zustand": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/dom-webcodecs": "^0.1.19",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "electron": "^45.3.2",
+    "electron-builder": "^26.18.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  },
+  "author": "Framewright",
+  "build": {
+    "appId": "local.framewright.editor",
+    "productName": "Framewright",
+    "files": [
+      "dist/**",
+      "electron/**"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
