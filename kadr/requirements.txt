@@ -1,0 +1,9 @@
+# Kadr - everything here is free and open source.
+faster-whisper>=1.0.3      # speech-to-text (runs Whisper models locally)
+fastapi>=0.110             # local web server
+uvicorn>=0.29              # runs the web server
+python-multipart>=0.0.9    # lets the web server accept file uploads
+imageio-ffmpeg>=0.5.1      # ships an FFmpeg binary, used only if FFmpeg is not installed
+pytest>=8.0                # runs the tests in tests/
+sentencepiece>=0.2         # splits text into pieces for the offline translator
+fonttools>=4.40            # reads font files to measure text width for caption layout

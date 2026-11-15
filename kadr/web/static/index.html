@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kadr</title>
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+  <link rel="stylesheet" href="/static/style.css?v=3">
+</head>
+<body class="home">
+  <header class="top">
+    <img src="/static/logo.svg" alt="" class="logo">
+    <div class="brand">
+      <h1>Kadr</h1>
+      <span class="sub">Auto-subtitles on your own computer · Uzbek, Russian, English</span>
+    </div>
+    <span class="spacer"></span>
+    <span class="badge device" id="device">…</span>
+  </header>
+
+  <main class="page">
+    <div id="message" class="message"></div>
+
+    <section class="panel upload">
+      <div class="panel-head">
+        <h2>New video</h2>
+      </div>
+
+      <div class="tabs" id="modes" role="tablist">
+        <button data-mode="subs" class="on" role="tab">
+          <i class="ico">Aa</i>
+          <span class="txt"><b>Subtitles</b><span>Captions in the language that is spoken</span></span>
+        </button>
+        <button data-mode="translate" role="tab">
+          <i class="ico">⇄</i>
+          <span class="txt"><b>Translated subtitles</b><span>Speech in one language, captions in another</span></span>
+        </button>
+      </div>
+
+      <div class="options">
+        <label class="field" id="languageField">Language spoken
+          <select id="language">
+            <option value="auto">Auto (Uzbek + Russian + English)</option>
+            <option value="uz">Uzbek</option>
+            <option value="ru">Russian</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <label class="field" id="fromField" style="display:none">Language spoken
+          <select id="fromLang">
+            <option value="en">English</option>
+            <option value="ru">Russian</option>
+            <option value="uz" disabled>Uzbek (not available)</option>
+          </select>
+        </label>
+        <label class="field" id="toField" style="display:none">Subtitles in
+          <select id="toLang">
+            <option value="ru">Russian</option>
+            <option value="en">English</option>
+            <option value="uz" disabled>Uzbek (not available)</option>
+          </select>
+        </label>
+        <label class="field">Words per line
+          <select id="maxWords">
+            <option value="">Auto (2–6)</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+          </select>
+        </label>
+        <label class="field">Speech model
+          <select id="model"></select>
+        </label>
+      </div>
+
+      <div id="drop" class="drop" tabindex="0" role="button">
+        <span class="drop-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m6 10 6-6 6 6"/><path d="M4 20h16"/></svg>
+        </span>
+        <strong>Drop videos here, or click to choose</strong>
+        <span id="limits">Several files at once are fine. They are processed one after another.</span>
+        <input id="file" type="file" accept="video/*,.mkv,.mov,.avi,.webm" multiple hidden>
+      </div>
+      <div class="bar" id="uploadBar" style="margin-top:12px; display:none"><i></i></div>
+
+      <details class="tips">
+        <summary>Tips for better results</summary>
+        <ul>
+          <li>If the whole video is in one language, choose it instead of Auto. It is more accurate.</li>
+          <li>“Default” model is the best choice: it uses a special Uzbek model for Uzbek speech.
+            Picking another model uses it for every language.</li>
+          <li>The first use of a model downloads it once (up to 1–2 GB).</li>
+          <li>Translation works only English ↔ Russian. Machine translation is rough: read every line.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Your videos</h2>
+        <span class="pill" id="disk"></span>
+      </div>
+      <div id="jobs"><div class="empty">Nothing here yet. Upload a video to start.</div></div>
+    </section>
+  </main>
+
+  <script src="/static/common.js?v=3"></script>
+  <script src="/static/index.js?v=3"></script>
+</body>
+</html>
