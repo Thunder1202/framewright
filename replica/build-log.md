@@ -111,3 +111,8 @@ Kadr (a separate Python program for automatic captions, found unfinished beside 
 | Desktop app keeps projects in data/ and starts Kadr itself | see below | |
 
 75+ checks: 70 editor unit tests and 339 Kadr tests pass.
+| Desktop app from D | done | opened release/win-unpacked/Framewright.exe and asked it directly: it listed the project saved before the move (copied from AppData into data/), started Kadr itself in 2.2 s, and Kadr reported the graphics card, 11 styles and both translation directions |
+| GitHub | done | private repository Thunder1202/framewright, Kadr's 8 earlier commits included |
+| Old copies removed from C | done | after a byte-for-byte check of the 33 job files and a size and date check of everything else: the two project folders and the 4.3 GB speech-model cache. C went from 165.5 GB free to 174 GB |
+
+Not checked: pressing Write captions inside the desktop window itself (the same code was run in the browser against the same engine); captions on real Uzbek speech; the installer. Left alone on purpose: an old partial copy of Kadr, Kadr's older standalone repository, and the 7 MB of pre-move app data in the old app-data folder (a spare copy; the app now uses data/).
