@@ -1,7 +1,7 @@
 feature,area,priority,original,clone,notes
 Create and name a project,projects,must,yes,yes,
 Projects list with reopen and delete,projects,must,yes,yes,
-Autosave and restore a project exactly,projects,must,yes,yes,stored locally in the browser
+Autosave and restore a project exactly,projects,must,yes,yes,saved on this computer in the data folder
 Import video image and audio by picker or drag and drop,media,must,yes,yes,
 Media thumbnails with duration,media,must,yes,yes,
 Add media to the timeline by click or drag,timeline,must,yes,yes,
@@ -49,7 +49,7 @@ Licensed music and sound effect library,audio,skip,yes,skip,licensed catalogue; 
 Stock video stickers and templates,media,skip,yes,skip,their content library and creator marketplace
 Cloud storage and team spaces,projects,skip,yes,skip,single user and local only by design
 Publish directly to social platforms,export,skip,yes,skip,needs partner API access
-Auto captions from speech,text,skip,yes,skip,server-side model; possible locally later
+Auto captions from speech,text,could,yes,yes,see Captions from speech below
 AI background removal and avatars,effects,skip,yes,skip,server-side models
 Text to speech voices,audio,skip,yes,skip,licensed voices
 Export sound only (WAV),export,could,no,yes,not in the original map; added here

@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "app": "vite build && electron .",
-    "dist": "vite build && electron-builder --win nsis"
+    "dist": "vite build && electron-builder --win nsis",
+    "docs": "node scripts/docs.mjs"
   },
   "dependencies": {
     "idb-keyval": "^6.3.0",

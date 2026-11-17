@@ -21,6 +21,7 @@ The owner is not a programmer. Do the whole job yourself: make the change, test 
 | Desktop app from the last build | `npm run app` |
 | Kadr's tests | `kadr\.venv\Scripts\python.exe -m pytest kadr\tests -q` (run from `kadr/`) |
 | Kadr on its own | `kadr\StartKadr.bat`, or `kadr\.venv\Scripts\python.exe run.py` from `kadr/` |
+| Regenerate docs/GUIDE.md and docs/FEATURES.md | `npm run docs` |
 | Build site + Windows installer | `npm run dist` → `release/Framewright Setup <version>.exe` and `release/win-unpacked/Framewright.exe` |
 
 The desktop shortcut "Framewright" points at `release/win-unpacked/Framewright.exe`, so `npm run dist` is what updates the app the owner opens. Close the app before building or the build cannot overwrite it.
@@ -69,6 +70,7 @@ replica/              specs and history: recon.md, architecture.md, design/, fea
 - **Never commit** `data/`, `kadr/jobs/`, `kadr/models/`, `kadr/.venv/`, `release/`: they are the owner's videos, multi-gigabyte models and builds. The `.gitignore` files already cover them.
 - **Kadr changes stay additive.** Kadr must keep working on its own; do not remove or rename what its page uses.
 - **Two converters, one behaviour.** If `kadr/engine/translit.py` changes, change `src/lib/translit.ts` the same way and regenerate `src/lib/translit.cases.ts` from Kadr's tests.
+- **Keep the docs true.** `docs/GUIDE.md` and `docs/FEATURES.md` are generated: after changing `src/guide.ts`, `src/shortcuts.ts` or `replica/features.csv`, run `npm run docs` and commit the result. The other files in `docs/` are written by hand for the owner, in plain words: update `docs/HISTORY.md` (and the others when affected) after each round of work.
 - **Keep the Guide true.** When a feature is added, moved or renamed, update its entry in `src/guide.ts`.
 - **Plain words in the UI.** Short labels, no jargon, say what a button does in its tooltip.
 

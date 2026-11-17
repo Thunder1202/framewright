@@ -26,25 +26,26 @@ It costs nothing: no paid services, no accounts, no internet needed after the fi
 
 | What | Where |
 |---|---|
-| The program | `C:\Users\USER\Desktop\new app with fable` (folder on your Desktop) |
-| Start button | `StartKadr.bat` inside that folder |
+| The program | `the Framewright folder\kadr` (inside Framewright, the video editor) |
+| Start button | the **Kadr captions** icon on your Desktop, or `StartKadr.bat` inside that folder |
 | Your work | the `jobs` folder inside it (one folder per video) |
-| Online copy of the code | <https://github.com/Thunder1202/framewright> (private, only you can see it) |
+| Speech and translation models | the `models` folder inside it |
+| Online copy of the code | <https://github.com/Thunder1202/framewright>, in the `kadr` folder (private, only you can see it). The older <https://github.com/Thunder1202/framewright> is no longer updated |
+
+**Inside Framewright:** you do not need to start Kadr yourself. In the Framewright editor, the **Text** tab has **Write captions**, the alphabet and translation buttons, and **Open Kadr**; Framewright starts Kadr quietly in the background and stops it when you close the editor. See [the Framewright guide](../docs/GUIDE.md#captions-from-speech).
 
 ---
 
 ## 3. How to start and stop it
 
-**Start:** open the folder on your Desktop and double-click **`StartKadr.bat`**.
+**Start:** double-click the **Kadr captions** icon on your Desktop (or `StartKadr.bat` in the `kadr` folder).
 A black window opens, and after a few seconds your browser opens Kadr.
 
 **Stop:** close the black window.
 
 Keep the black window open while you work. If something goes wrong, the details are printed there.
 
-**Tip:** right-click `StartKadr.bat` → *Show more options* → *Send to* → *Desktop (create shortcut)* to put an icon on your Desktop.
-
-**On another computer:** download the code from GitHub, then double-click `StartKadr.bat`.
+**On another computer:** download the code from GitHub, then double-click `kadr\StartKadr.bat`.
 The first time, it installs everything by itself (needs Python, see `README.md`).
 
 ```bash
