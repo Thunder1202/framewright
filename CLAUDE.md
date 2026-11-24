@@ -1,15 +1,15 @@
 # Framewright
 
-A local-first video editor for Windows (also runs in Chrome or Edge). Personal use, no accounts, nothing uploaded. Modelled on the editing loop of a well-known mobile and desktop editor, but written clean-room: its own name, palette, copy and code.
+A local-first video editor for Windows (also runs in Chrome or Edge). No accounts, nothing uploaded. A free, offline alternative to the well-known mobile and desktop editors, written clean-room: its own name, palette, copy and code. MIT licensed (`LICENSE`).
 
 This folder holds two programs that work together:
 
 - **Framewright** (everything outside `kadr/`): the editor. TypeScript, React, Electron.
 - **Kadr** (`kadr/`): the captions engine. Python. It listens to a video and writes word-timed captions in Uzbek, Russian or English, converts Uzbek between alphabets, translates English and Russian, and can burn styled captions in by itself. Framewright starts it in the background when captions are asked for and talks to it over `http://127.0.0.1:8000`. It also still runs on its own (`kadr/StartKadr.bat`). Its own docs: `kadr/README.md`, `kadr/GUIDE.md`, `kadr/DECISIONS.md`.
 
-Everything lives in `the Framewright folder` on purpose, to keep the C drive free: the code, the built app, Kadr's Python environment and speech models (`kadr/.venv`, `kadr/models`), and the desktop app's saved projects (`data/`). Do not move any of it back to C.
+Everything lives inside the repository folder on purpose: the code, the built app, Kadr's Python environment and speech models (`kadr/.venv`, `kadr/models`), and the desktop app's saved projects (`data/`). Do not send models, caches or app data to the system drive or the user profile.
 
-The owner is not a programmer. Do the whole job yourself: make the change, test it, rebuild the installer, and report in plain words what works and what was not checked. Do not hand back steps for the owner to carry out unless only they can do it.
+Do the whole job: make the change, test it, rebuild the app, and report in plain words what works and what was not checked.
 
 ## Commands
 
@@ -24,7 +24,7 @@ The owner is not a programmer. Do the whole job yourself: make the change, test 
 | Regenerate docs/GUIDE.md and docs/FEATURES.md | `npm run docs` |
 | Build site + Windows installer | `npm run dist` → `release/Framewright Setup <version>.exe` and `release/win-unpacked/Framewright.exe` |
 
-The desktop shortcut "Framewright" points at `release/win-unpacked/Framewright.exe`, so `npm run dist` is what updates the app the owner opens. Close the app before building or the build cannot overwrite it.
+The app is run as `release/win-unpacked/Framewright.exe` from inside this folder (that is how it finds Kadr and `data/`), so `npm run dist` is what updates it. Close the app before building or the build cannot overwrite it.
 
 ## Where things are
 
@@ -67,10 +67,10 @@ replica/              specs and history: recon.md, architecture.md, design/, fea
 - **One renderer.** Anything visual goes in `compose.ts` so preview and export cannot drift apart. Anything audible needs both `player.ts` (preview) and `mixAudio` in `export.ts`.
 - **Time inside a clip** always goes through `sourcePos` / `sourceTime` (and `innerTime` for groups). Do not compute `offset + local * speed` by hand.
 - **Edits go through `actions.ts`** using `commit` (one undo step) or `checkpoint` + `mutate` (dragging).
-- **Never commit** `data/`, `kadr/jobs/`, `kadr/models/`, `kadr/.venv/`, `release/`: they are the owner's videos, multi-gigabyte models and builds. The `.gitignore` files already cover them.
+- **Never commit** `data/`, `kadr/jobs/`, `kadr/models/`, `kadr/.venv/`, `release/`: they are users' videos, multi-gigabyte models and builds. The `.gitignore` files already cover them.
 - **Kadr changes stay additive.** Kadr must keep working on its own; do not remove or rename what its page uses.
 - **Two converters, one behaviour.** If `kadr/engine/translit.py` changes, change `src/lib/translit.ts` the same way and regenerate `src/lib/translit.cases.ts` from Kadr's tests.
-- **Keep the docs true.** `docs/GUIDE.md` and `docs/FEATURES.md` are generated: after changing `src/guide.ts`, `src/shortcuts.ts` or `replica/features.csv`, run `npm run docs` and commit the result. The other files in `docs/` are written by hand for the owner, in plain words: update `docs/HISTORY.md` (and the others when affected) after each round of work.
+- **Keep the docs true.** `docs/GUIDE.md` and `docs/FEATURES.md` are generated: after changing `src/guide.ts`, `src/shortcuts.ts` or `replica/features.csv`, run `npm run docs` and commit the result. The other files in `docs/` are written by hand for users, in plain words: update `docs/HISTORY.md` (and the others when affected) after each round of work.
 - **Keep the Guide true.** When a feature is added, moved or renamed, update its entry in `src/guide.ts`.
 - **Plain words in the UI.** Short labels, no jargon, say what a button does in its tooltip.
 
@@ -97,7 +97,7 @@ Rendering bugs do not show up in unit tests. In the dev server page, drive the a
 
 ## Git and GitHub
 
-Private repository: `origin` on GitHub (see `git remote -v`). Kadr's earlier history is merged in under `kadr/`. Commit after each finished piece of work and push; never make the repository public or commit the folders listed under Rules.
+Repository: `origin` on GitHub (see `git remote -v`). Kadr's earlier history is merged in under `kadr/`. Commit after each finished piece of work and push; never commit the folders listed under Rules, secrets or `.env` files.
 
 ## Known limits (see `replica/build-log.md` for the full list)
 
@@ -112,4 +112,4 @@ Private repository: `origin` on GitHub (see `git remote -v`). Kadr's earlier his
 
 ## Environment notes
 
-Windows, Git Bash and PowerShell. The only Python is Kadr's own, at `kadr\.venv\Scripts\python.exe` (its launchers such as `pip.exe` do not work since the move from C; use `python.exe -m pip`). Shell heredocs mangle backslashes and backticks here: write scripts to a file with the editor tools and run them with `node`.
+Windows, Git Bash and PowerShell. The only Python is Kadr's own, at `kadr\.venv\Scripts\python.exe` (if the folder has been moved since the venv was made, its launchers such as `pip.exe` break; use `python.exe -m pip`). Shell heredocs mangle backslashes and backticks here: write scripts to a file with the editor tools and run them with `node`.

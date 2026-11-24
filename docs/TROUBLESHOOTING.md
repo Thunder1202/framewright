@@ -5,13 +5,16 @@ Find the message or problem you see, then follow the steps.
 ## Captions
 
 **“The captions engine is not installed yet”**
-Kadr's Python copy is missing from `kadr\.venv`. Double-click the **Kadr captions** icon once and let it install (a few minutes, needs internet once). Then try **Write captions** again.
+Kadr's Python copy is missing from `kadr\.venv`. Double-click `kadr\StartKadr.bat` once and let it install (a few minutes, needs internet once). Then try **Write captions** again.
+
+**Captions do not work in a copy installed with the installer**
+The installed copy cannot find Kadr. Run `release\win-unpacked\Framewright.exe` from inside the Framewright folder instead (see the [README](../README.md#install)).
 
 **“The captions engine is not running”** (only in the browser version)
-The browser version cannot start Kadr itself. Double-click the **Kadr captions** icon, wait for its page to open, then try again. The desktop app starts it for you.
+The browser version cannot start Kadr itself. Double-click `kadr\StartKadr.bat`, wait for its page to open, then try again. The desktop app starts it for you.
 
 **“The captions engine did not start in time” / “stopped while starting”**
-Something else may be using port 8000. Close other programs that run local servers, or change `"port"` in `kadr\settings.json` to another number such as 8010, then reopen Framewright. To see the real error, start Kadr with the **Kadr captions** icon: the black window prints it.
+Something else may be using port 8000. Close other programs that run local servers, or change `"port"` in `kadr\settings.json` to another number such as 8010, then reopen Framewright. To see the real error, start Kadr with `kadr\StartKadr.bat`: the black window prints it.
 
 **It takes a long time the first time**
 The speech model downloads once, about 1 GB for Uzbek. After that it is quick.
@@ -38,11 +41,11 @@ You changed the words of that caption, so the word timings no longer fit. It sti
 
 ## The app
 
-**The desktop icon does nothing or says the file is missing**
-The folder `the Framewright folder` was moved or renamed, or `release\win-unpacked` was deleted. Put the folder back, or ask an AI helper to rebuild the app (`npm run dist`) and fix the icon.
+**A shortcut does nothing or says the file is missing**
+The Framewright folder was moved or renamed, or `release\win-unpacked` was deleted. Put the folder back, or rebuild the app with `npm run dist` and point the shortcut at the new `Framewright.exe`.
 
 **My projects are gone**
-Check that `the Framewright folder\data` exists. If you have a backup, close Framewright and copy it back ([how](YOUR-FILES.md)). A spare copy from before the move to D is in `the old app-data folder`.
+Check that the `data` folder inside the Framewright folder exists. If you have a backup, close Framewright and copy it back ([how](YOUR-FILES.md)). Projects made in the browser version (`npm run dev`) are kept in that browser, not in `data`.
 
 **“…source files are missing from storage. Re-import to relink.”**
 The project remembers a file whose stored copy is gone. Import the same file again.
@@ -56,8 +59,8 @@ The preview drops frames to stay in time; the exported file does not. Very large
 **Reversed clips have no sound in the preview**
 Known limit. The exported file does have the reversed sound.
 
-## For an AI helper fixing things
+## For developers
 
-- **“EBUSY: resource busy or locked” when building:** Framewright is open. Ask the owner to close it, never force it closed.
-- **Kadr's `pip.exe` fails:** the virtual environment moved from C to D, so its launchers point at the old place. Use `kadr\.venv\Scripts\python.exe -m pip` instead.
+- **“EBUSY: resource busy or locked” when building:** Framewright is open. Close it first; do not force it closed while it may be saving.
+- **Kadr's `pip.exe` fails:** the folder was moved after `kadr\.venv` was created, so the venv's launchers point at the old place. Use `kadr\.venv\Scripts\python.exe -m pip` instead, or delete `kadr\.venv` and run `kadr\StartKadr.bat` again.
 - **More:** [CLAUDE.md](../CLAUDE.md) has the commands, rules and how to check changes.

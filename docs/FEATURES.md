@@ -12,7 +12,7 @@ How to use each one is in [GUIDE.md](GUIDE.md). What “partly” means is in th
 | --- | --- | --- |
 | Create and name a project | ✅ Done |  |
 | Projects list with reopen and delete | ✅ Done |  |
-| Autosave and restore a project exactly | ✅ Done | stored locally in the browser |
+| Autosave and restore a project exactly | ✅ Done | saved on this computer in the data folder |
 
 ## Media
 

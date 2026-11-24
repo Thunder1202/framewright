@@ -79,7 +79,7 @@ The text is sent to Kadr, which uses a small offline translation model (Argos Tr
 | Talking to Kadr | `src/lib/kadr.ts` |
 | Uzbek alphabets | `src/lib/translit.ts` |
 | The in-app guide text | `src/guide.ts` |
-| The desktop wrapper (starts Kadr, keeps data on D) | `electron/main.cjs` |
+| The desktop wrapper (starts Kadr, keeps projects in `data\`) | `electron/main.cjs` |
 | Kadr's speech recognition | `kadr/engine/transcribe.py` |
 | Kadr's own page and its connection point | `kadr/web/app.py` |
 

@@ -26,11 +26,11 @@ It costs nothing: no paid services, no accounts, no internet needed after the fi
 
 | What | Where |
 |---|---|
-| The program | `the Framewright folder\kadr` (inside Framewright, the video editor) |
-| Start button | the **Kadr captions** icon on your Desktop, or `StartKadr.bat` inside that folder |
+| The program | the `kadr` folder inside Framewright, the video editor |
+| Start button | `StartKadr.bat` inside that folder (you can make a desktop shortcut to it) |
 | Your work | the `jobs` folder inside it (one folder per video) |
 | Speech and translation models | the `models` folder inside it |
-| Online copy of the code | <https://github.com/Thunder1202/framewright>, in the `kadr` folder (private, only you can see it). The older <https://github.com/Thunder1202/framewright> is no longer updated |
+| Online copy of the code | <https://github.com/Thunder1202/framewright>, in the `kadr` folder |
 
 **Inside Framewright:** you do not need to start Kadr yourself. In the Framewright editor, the **Text** tab has **Write captions**, the alphabet and translation buttons, and **Open Kadr**; Framewright starts Kadr quietly in the background and stops it when you close the editor. See [the Framewright guide](../docs/GUIDE.md#captions-from-speech).
 
@@ -38,7 +38,7 @@ It costs nothing: no paid services, no accounts, no internet needed after the fi
 
 ## 3. How to start and stop it
 
-**Start:** double-click the **Kadr captions** icon on your Desktop (or `StartKadr.bat` in the `kadr` folder).
+**Start:** double-click `StartKadr.bat` in the `kadr` folder (or your shortcut to it).
 A black window opens, and after a few seconds your browser opens Kadr.
 
 **Stop:** close the black window.

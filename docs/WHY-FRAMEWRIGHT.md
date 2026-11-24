@@ -1,13 +1,13 @@
 # Framewright compared with CapCut
 
-Framewright copies how CapCut's editing works, not its code or look. Here is where Framewright is the better fit, and where CapCut still is. CapCut changes often, so treat the CapCut side as a general picture, not a promise.
+Framewright is a free, offline alternative to CapCut: a familiar timeline workflow, with its own code, design and wording, that runs entirely on your computer. It is an independent project, not affiliated with CapCut or ByteDance. Here is where Framewright is the better fit, and where CapCut still is. CapCut changes often, so treat the CapCut side as a general picture, not a promise.
 
 ## Where Framewright is better
 
 | | Framewright |
 | --- | --- |
 | **Account** | None. Open it and edit |
-| **Privacy** | Nothing is uploaded, ever. Your videos, captions and projects stay on drive D |
+| **Privacy** | Nothing is uploaded, ever. Your videos, captions and projects stay on your computer |
 | **Works offline** | Fully, including captions and translation once their models have downloaded |
 | **Cost and watermark** | Free, no watermark, no paid tier, no feature locked behind a plan |
 | **Export** | Up to 4K at 60 frames a second; sound-only WAV; captions as .srt |
@@ -15,7 +15,7 @@ Framewright copies how CapCut's editing works, not its code or look. Here is whe
 | **Remove silences** | One button cuts the quiet stretches out of a talking clip |
 | **Keyboard** | Nearly everything has a shortcut; press **?** for the list |
 | **Safety** | Every change saves itself and can be undone |
-| **It is yours** | The code is in your own private GitHub repository. It cannot be switched off, changed or priced by anyone else, and an AI helper can add features to it |
+| **Open source** | MIT licensed. Nobody can switch it off, change it under you or put a price on it, and anyone can read the code or add features |
 
 ## Where CapCut is still better
 

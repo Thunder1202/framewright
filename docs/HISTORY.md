@@ -4,10 +4,10 @@ The story so far, in plain words, newest last. The detailed record, including ex
 
 ## Before: two unfinished programs
 
-There were two separate projects on drive C:
+There were two separate projects:
 
-- **“Cut and Cap”**, a video editor modelled on how CapCut's editing works but written from scratch: its own name (Framewright), look, wording and code.
-- **Kadr**, a Python program that writes captions for short Uzbek, Russian and English videos. It already had its own private GitHub repository.
+- **“Cut and Cap”** (the working name), a free, offline video editor with a CapCut-style timeline workflow, written from scratch: its own name (Framewright), look, wording and code.
+- **Kadr**, a Python program that writes captions for short Uzbek, Russian and English videos. It already had its own GitHub repository.
 
 ## Round 1: the editor works end to end
 
@@ -66,7 +66,7 @@ All six were fixed. Then the look was refreshed:
 - dialogs that fade in;
 - a new home screen.
 
-## Round 6: Kadr joins, everything moves to D, GitHub
+## Round 6: Kadr joins, everything in one folder, GitHub
 
 - **Fused.** Kadr moved inside Framewright as the `kadr` folder, keeping its full history. Nothing of Kadr was removed: it still runs on its own.
 - **New buttons in the editor's Text tab:**
@@ -76,12 +76,12 @@ All six were fixed. Then the look was refreshed:
   - **Save as .srt**;
   - **Open Kadr**.
 - **Caption fit.** Testing found long captions running off the sides of vertical videos; they now break into two rows.
-- **Moved to D.** The whole program moved to `the Framewright folder`, including:
-  - Kadr's 4.3 GB of speech models, which had been hidden in a cache folder on C;
-  - your saved projects, now in `data\`.
+- **One folder.** Everything the program uses now lives inside its own folder, including:
+  - Kadr's speech models (4.3 GB), which had been in a hidden cache folder on the system drive and are now in `kadr\models\`;
+  - the desktop app's saved projects, now in `data\`.
 
-  Every file was checked before the old copies on C were removed. C gained about 8.5 GB of free space.
-- **GitHub.** Everything went into one private GitHub repository: <https://github.com/Thunder1202/framewright>.
+  Every file was checked before the old copies were removed.
+- **GitHub.** Everything went into one GitHub repository: <https://github.com/Thunder1202/framewright>.
 
 ## Round 7: everything written down
 
@@ -95,6 +95,12 @@ These documents:
 - this history.
 
 Kadr's own guide was updated for its new home.
+
+## Round 8: ready for other people
+
+- An MIT licence.
+- A README for people who have never seen it: what it is, how to install it, which models it downloads and under which licences.
+- The documents were reworded so they no longer assume one particular computer.
 
 ## Still open
 

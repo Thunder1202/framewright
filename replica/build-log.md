@@ -94,15 +94,15 @@ Design refresh (styles.css design layer, tokens updated): slightly blue-tinted d
 
 Not checked: the look inside the packaged desktop app (rebuild was blocked because the app was open), dialog animations (they do not run while the test browser is hidden).
 
-## Sixth pass, 2026-11-15: fused with Kadr, moved to drive D, put on GitHub
+## Sixth pass, 2026-11-15: fused with Kadr, moved into one folder, put on GitHub
 
 Kadr (a separate Python program for automatic captions, found unfinished beside this one) now lives in `kadr/` with its git history, and its features are reachable from the editor. Nothing of Kadr's was removed: its own page, styles, batch mode and tests are all still there.
 
 | item | status | checked how |
 | --- | --- | --- |
-| Whole program on the Framewright folder | done | copied with robocopy: 8,998 + 11,561 + 27 files, 0 failed; Kadr's 336 tests pass from D using the moved Python environment and the moved speech models |
-| Speech models moved out of the user-profile Hugging Face cache (4.3 GB) into kadr/models/hf | done | a caption run from D loaded them without downloading anything |
-| Captions from speech in the editor | done | in the browser, with Kadr running from D: a 21 s Russian sample became 9 correct captions in 29 s, each with word times |
+| Whole program in one folder | done | copied with robocopy: 8,998 + 11,561 + 27 files, 0 failed; Kadr's 336 tests pass from the new folder using the moved Python environment and the moved speech models |
+| Speech models moved out of the user-profile Hugging Face cache (4.3 GB) into kadr/models/hf | done | a caption run from the new folder loaded them without downloading anything |
+| Captions from speech in the editor | done | in the browser, with Kadr running from the new folder: a 21 s Russian sample became 9 correct captions in 29 s, each with word times |
 | Spoken word lights up | done | rendered frames with the video hidden: the yellow word was in row one at the first word and row two at the last |
 | Captions fit the picture | done | found broken by that same test (a line ran off both edges of a vertical video); now long lines break into two balanced rows, text spans 95-446 of 540 pixels |
 | Uzbek Latin / Cyrillic | done | the TypeScript port gives the same answer as Kadr on all of Kadr's own test cases; converted a title both ways in the app |
@@ -111,8 +111,8 @@ Kadr (a separate Python program for automatic captions, found unfinished beside 
 | Desktop app keeps projects in data/ and starts Kadr itself | see below | |
 
 75+ checks: 70 editor unit tests and 339 Kadr tests pass.
-| Desktop app from D | done | opened release/win-unpacked/Framewright.exe and asked it directly: it listed the project saved before the move (copied from AppData into data/), started Kadr itself in 2.2 s, and Kadr reported the graphics card, 11 styles and both translation directions |
-| GitHub | done | private repository Thunder1202/framewright, Kadr's 8 earlier commits included |
-| Old copies removed from C | done | after a byte-for-byte check of the 33 job files and a size and date check of everything else: the two project folders and the 4.3 GB speech-model cache. C went from 165.5 GB free to 174 GB |
+| Desktop app from the new folder | done | opened release/win-unpacked/Framewright.exe and asked it directly: it listed the project saved before the move (copied from AppData into data/), started Kadr itself in 2.2 s, and Kadr reported the graphics card, 11 styles and both translation directions |
+| GitHub | done | repository Thunder1202/framewright, Kadr's 8 earlier commits included |
+| Old copies removed | done | after a byte-for-byte check of the 33 job files and a size and date check of everything else: the two old project folders and the 4.3 GB speech-model cache, about 8.5 GB freed |
 
-Not checked: pressing Write captions inside the desktop window itself (the same code was run in the browser against the same engine); captions on real Uzbek speech; the installer. Left alone on purpose: an old partial copy of Kadr, Kadr's older standalone repository, and the 7 MB of pre-move app data in the old app-data folder (a spare copy; the app now uses data/).
+Not checked: pressing Write captions inside the desktop window itself (the same code was run in the browser against the same engine); captions on real Uzbek speech; the installer. Left alone on purpose: Kadr's older standalone repository and a 7 MB spare copy of the pre-move app data (the app now uses data/).

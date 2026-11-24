@@ -1,7 +1,41 @@
-node_modules
-dist
-release
-# the desktop app keeps your projects here; never commit them
-data
-*.log
+# Dependencies and build output
+node_modules/
+dist/
+release/
+*.tsbuildinfo
+.vite/
+
+# The desktop app keeps saved projects and imported media here; never commit them
+data/
+
+# Captions engine (Kadr): private Python environment, downloaded models, captioned videos
+# (kadr/.gitignore covers these too)
+kadr/.venv/
+kadr/models/
+kadr/jobs/*
+!kadr/jobs/.gitkeep
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Model weights, wherever they end up
+*.argosmodel
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.gguf
+model.bin
+
+# Secrets and local settings
+.env
+.env.*
+!.env.example
 .claude/settings.local.json
+
+# Logs and OS clutter
+*.log
+Thumbs.db
+desktop.ini
+.DS_Store
